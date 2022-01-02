@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "b0217ecb-53f2-4a68-89a5-21c4c6a2a6b0": {
+      "ProjectGuid": "b0217ecb-53f2-4a68-89a5-21c4c6a2a6b0",
+      "DisplayName": "DSProject",
+      "ColorIndex": 0
+    },
+    "817a105b-1723-4e7b-b460-c7f67d95b62c": {
+      "ProjectGuid": "817a105b-1723-4e7b-b460-c7f67d95b62c",
+      "DisplayName": "TestDS",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}
