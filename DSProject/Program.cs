@@ -28,6 +28,20 @@ namespace DSProject
         String FindDrugAssociated(String name);
     }
 
+    interface IPersistence
+    {
+        bool PersistDiseases(string path);
+        bool PersistDrugs(string path);
+    }
+
+    interface ICRD
+    {
+        void CreateDisease(string name);
+        void CreateDrug(string name);
+        void DeleteDrug(string name);
+        void DeleteDisease(string name);
+    }
+
     class DiseaseDrugDb
     {
         public List<String> DrugsNames;
@@ -95,7 +109,8 @@ namespace DSProject
         }
     }
 
-    class MyOperator: IFinder, IContains
+
+    class MyOperator: IFinder, IContains, IPersistence, ICRD
     {
         private DiseaseDrugDb DB;
 
@@ -181,6 +196,7 @@ namespace DSProject
             return result1 + "\n" + this.Temp;
         }
 
+        /// <inheritdoc />
         private void FindDrugAssociatedHelper(object name)
         {
             String name_ = name as string;
@@ -235,6 +251,50 @@ namespace DSProject
             Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
             return result;
         }
+
+        /// <inheritdoc />
+        public bool PersistDiseases(string path)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            using (StreamWriter sw = new StreamWriter(@path))
+            {
+                foreach (var line in this.DB.DiseaseNames)
+                {
+                    if (line == "DELETE")
+                    {
+                        continue;
+                    }
+                    sw.WriteLine(line);
+                }
+            }
+
+            watch.Stop();
+            Console.WriteLine("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool PersistDrugs(string path)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            using (StreamWriter sw = new StreamWriter(@path))
+            {
+                foreach (var line in this.DB.DrugsNames)
+                {
+                    if (line == "DELETE")
+                    {
+                        continue;
+                    }
+                    sw.WriteLine(line);
+                }
+            }
+
+            watch.Stop();
+            Console.WriteLine("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
+            return true;
+        }
     }
 
     class Program
@@ -271,6 +331,7 @@ namespace DSProject
             //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc : 84845"));
             //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
             Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
+            //op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
             return;
         }
     }
