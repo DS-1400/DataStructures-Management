@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Resources;
 using System.Threading;
 
@@ -49,7 +50,7 @@ namespace DSProject
         public List<String> DiseaseDrugsNames;
         public List<String> DrugsEffectsNames;
 
-        public DiseaseDrugDb() // 59 Milliseconds for first time running
+        public DiseaseDrugDb() // 170 Milliseconds for first time 
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
             this.DiseaseNames =
@@ -306,8 +307,10 @@ namespace DSProject
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             Thread th = new Thread(this.DeleteDrugHelper);
+            Thread th2 = new Thread(this.YetAnotherDeleteDrugHelper);
 
             th.Start(name);
+            th2.Start(name);
 
             int i = 0;
             foreach (var drug in this.DB.DrugsNames)
@@ -322,6 +325,7 @@ namespace DSProject
             }
 
             th.Join();
+            th2.Join();
 
             watch.Stop();
             Console.WriteLine("The time for deleting Drug : " + watch.ElapsedMilliseconds);
@@ -330,7 +334,69 @@ namespace DSProject
         private void DeleteDrugHelper(object name)
         {
             String name_ = name as string;
+            String[] dual;
+            String[] after;
+            String tmp = "";
 
+            int i = 0;
+            foreach (var diseaseDrugs in this.DB.DiseaseDrugsNames)
+            {
+                if (diseaseDrugs.Contains(name_))
+                {
+                    dual = diseaseDrugs.Split(":");
+                    after = dual[1].Split(";");
+
+                    tmp += dual[0] + ":";
+                    
+                    for (int j = 0; j < after.Length; j++)
+                    {
+                        if (!after[i].Contains(name_))
+                        {
+                            tmp += after[i] + ";";
+                        }
+                    }
+
+                    this.DB.DiseaseDrugsNames[i] = tmp;
+                }
+
+                i += 1;
+                tmp = "";
+            }
+        }
+
+        private void YetAnotherDeleteDrugHelper(object name)
+        {
+            string name_ = name as string;
+            String[] dual;
+            String[] after;
+            String tmp = "";
+            int i = 0;
+
+            foreach (var drugsEffects in this.DB.DrugsEffectsNames)
+            {
+                dual = drugsEffects.Split(":");
+                if (dual[0].Contains(name_))
+                {
+                    this.DB.DrugsEffectsNames.RemoveAt(i);
+                } else if (dual[1].Contains(name_))
+                {
+                    after = dual[1].Split(";");
+
+                    tmp += dual[0];
+                    for (int j = 0; j < after.Length; j++)
+                    {
+                        if (!after[i].Contains(name_))
+                        {
+                            tmp += after[i];
+                        }
+                    }
+
+                    this.DB.DrugsEffectsNames[i] = tmp;
+                }
+
+                i += 1;
+                tmp = "";
+            }
         }
 
         /// <inheritdoc />
@@ -418,6 +484,8 @@ namespace DSProject
 
             //op.DeleteDrug("Drug_ucxnqwcpsf");
             //op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
+
+
             return;
         }
     }
