@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Resources;
 using System.Threading;
 
 namespace DSProject
@@ -24,8 +25,6 @@ namespace DSProject
     interface IFinder
     {
         String FindDiseaseDrugs(String name);
-        String FindDisease(String name);
-        String FindDrug(String name);
         String FindDrugAssociated(String name);
     }
 
@@ -100,6 +99,8 @@ namespace DSProject
     {
         private DiseaseDrugDb DB;
 
+        private String Temp;
+
         public MyOperator(DiseaseDrugDb db)
         {
             this.DB = db;
@@ -108,38 +109,131 @@ namespace DSProject
         /// <inheritdoc />
         public string FindDiseaseDrugs(string name)
         {
-            throw new NotImplementedException();
-        }
+            var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
-        /// <inheritdoc />
-        public string FindDisease(string name)
-        {
-            throw new NotImplementedException();
-        }
+            String[] dual;
+            String[] after;
+            String result = name + ":";
+            foreach (var line in this.DB.DiseaseDrugsNames)
+            {
+                dual = line.Split(":");
+                dual[0] = dual[0].Trim();
+                dual[1] = dual[1].Trim();
+                if (dual[0] == name)
+                {
+                    after = dual[1].Split(";");
+                    for (int i = 0; i < after.Length; i++)
+                    {
+                        after[i] = after[i].Trim();
+                        if (after[i].Contains('+'))
+                        {
+                            result += after[i];
+                        }
+                    }
+                    break;
+                }
+            }
 
-        /// <inheritdoc />
-        public string FindDrug(string name)
-        {
-            throw new NotImplementedException();
+            watch10.Stop();
+            Console.WriteLine("The Time for DiseaseDrugs function : " + watch10.ElapsedMilliseconds);
+            return result;
         }
 
         /// <inheritdoc />
         public string FindDrugAssociated(string name)
         {
-            throw new NotImplementedException();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            String[] dual;
+            String[] after;
+            String result1 = name + ":";
+            this.Temp = name + ":";
+
+            Thread th = new Thread(this.FindDrugAssociatedHelper);
+            th.Start(name);
+
+            foreach (var line in this.DB.DiseaseDrugsNames)
+            {
+                if (line.Contains(name))
+                {
+                    dual = line.Split(":");
+                    dual[0] = dual[0].Trim();
+                    dual[1] = dual[1].Trim();
+
+                    result1 += dual[0];
+
+                    after = dual[1].Split(";");
+                    for (int i = 0; i < after.Length; i++)
+                    {
+                        if (after[i].Contains(name))
+                        {
+                            result1 += after[i] + ";";
+                            break;
+                        }
+                    }
+                }
+            }
+
+            th.Join();
+
+            watch.Stop();
+            Console.WriteLine("The Time for FindDrugsAssociation function : " + watch.ElapsedMilliseconds);
+            return result1 + "\n" + this.Temp;
+        }
+
+        private void FindDrugAssociatedHelper(object name)
+        {
+            String name_ = name as string;
+            String[] dual;
+            String[] after;
+
+            foreach (var line in this.DB.DrugsEffectsNames)
+            {
+                dual = line.Split(":");
+                dual[0] = dual[0].Trim();
+                dual[1] = dual[1].Trim();
+
+                if (dual[1].Contains(name_))
+                {
+                    after = dual[1].Split(";");
+
+                    this.Temp += dual[0];
+                    for (int i = 0; i < after.Length; i++)
+                    {
+                        if (after[i].Contains(name_))
+                        {
+                            this.Temp += after[i] + ";";
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return;
         }
 
         /// <inheritdoc />
         public bool ContainsDisease(string name)
         {
-            return this.DB.DrugsNames.Contains(name);
+            var watch10 = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = this.DB.DrugsNames.Contains(name);
+
+            watch10.Stop();
+            Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
+            return result;
         }
 
         /// <inheritdoc />
         public bool ContainsDrug(string name)
         {
-            return 
-                this.DB.DrugsNames.Contains(name);
+            var watch10 = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = this.DB.DrugsNames.Contains(name);
+
+            watch10.Stop();
+            Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
+            return result;
         }
     }
 
@@ -175,7 +269,8 @@ namespace DSProject
 
             MyOperator op = new MyOperator(DB);
             //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc : 84845"));
-
+            //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
+            Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
             return;
         }
     }

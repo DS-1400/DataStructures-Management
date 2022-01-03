@@ -13,3 +13,4 @@ D:\Alireza\RiderProjects\TestDSProject\DSProject\obj\Release\net5.0\DSProject.dl
 D:\Alireza\RiderProjects\TestDSProject\DSProject\obj\Release\net5.0\ref\DSProject.dll
 D:\Alireza\RiderProjects\TestDSProject\DSProject\obj\Release\net5.0\DSProject.pdb
 D:\Alireza\RiderProjects\TestDSProject\DSProject\obj\Release\net5.0\DSProject.genruntimeconfig.cache
+D:\Alireza\RiderProjects\TestDSProject\DSProject\obj\Release\net5.0\DSProject.csproj.AssemblyReference.cache
