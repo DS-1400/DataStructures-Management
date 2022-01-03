@@ -46,8 +46,8 @@ namespace DSProject
     {
         public List<String> DrugsNames;
         public List<String> DiseaseNames;
-        public String[] DiseaseDrugsNames;
-        public String[] DrugsEffectsNames;
+        public List<String> DiseaseDrugsNames;
+        public List<String> DrugsEffectsNames;
 
         public DiseaseDrugDb() // 59 Milliseconds for first time running
         {
@@ -61,15 +61,16 @@ namespace DSProject
                 new List<string>(
                     File.ReadAllLines(
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt"));
-                
-
+            
             this.DiseaseDrugsNames =
-                File.ReadAllLines(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt");
+                new List<string>(
+                    File.ReadAllLines(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt"));
 
             this.DrugsEffectsNames = 
-                File.ReadAllLines(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt");
+                new List<string>(
+                    File.ReadAllLines(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt"));
 
             watch10.Stop();
             Console.WriteLine("The fucking time of Reading all files : " + watch10.ElapsedMilliseconds);
@@ -261,10 +262,6 @@ namespace DSProject
             {
                 foreach (var line in this.DB.DiseaseNames)
                 {
-                    if (line == "DELETE")
-                    {
-                        continue;
-                    }
                     sw.WriteLine(line);
                 }
             }
@@ -283,17 +280,99 @@ namespace DSProject
             {
                 foreach (var line in this.DB.DrugsNames)
                 {
-                    if (line == "DELETE")
-                    {
-                        continue;
-                    }
                     sw.WriteLine(line);
                 }
             }
 
             watch.Stop();
-            Console.WriteLine("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
+            Console.WriteLine("The time for persisting Drugs : " + watch.ElapsedMilliseconds);
             return true;
+        }
+
+        /// <inheritdoc />
+        public void CreateDisease(string name)
+        {
+            
+        }
+
+        /// <inheritdoc />
+        public void CreateDrug(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void DeleteDrug(string name)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Thread th = new Thread(this.DeleteDrugHelper);
+
+            th.Start(name);
+
+            int i = 0;
+            foreach (var drug in this.DB.DrugsNames)
+            {
+                if (drug.Contains(name))
+                {
+                    this.DB.DrugsNames.RemoveAt(i);
+                    break;
+                }
+
+                i += 1;
+            }
+
+            th.Join();
+
+            watch.Stop();
+            Console.WriteLine("The time for deleting Drug : " + watch.ElapsedMilliseconds);
+        }
+
+        private void DeleteDrugHelper(object name)
+        {
+            String name_ = name as string;
+
+        }
+
+        /// <inheritdoc />
+        public void DeleteDisease(string name)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Thread th = new Thread(this.DeleteDiseaseHelper);
+
+            th.Start(name);
+
+            int i = 0;
+            foreach (var disease in this.DB.DiseaseNames)
+            {
+                if (disease.Contains(name))
+                {
+                    this.DB.DiseaseNames.RemoveAt(i);
+                    break;
+                }
+
+                i += 1;
+            }
+
+            th.Join();
+
+            watch.Stop();
+            Console.WriteLine("The time for deleting Disease : " + watch.ElapsedMilliseconds);
+        }
+
+        private void DeleteDiseaseHelper(object name)
+        {
+            String name_ = name as string;
+            int i = 0;
+            foreach (var diseaseDrugs in this.DB.DiseaseDrugsNames)
+            {
+                if (diseaseDrugs.Contains(name_))
+                {
+                    this.DB.DiseaseDrugsNames.RemoveAt(i);
+                    break;
+                }
+
+                i += 1;
+            }
         }
     }
 
@@ -324,14 +403,21 @@ namespace DSProject
             
             Console.WriteLine("Hello World!");
 
+            th.Join();
             Console.WriteLine("hello enter something :");
             Console.ReadLine();
 
             MyOperator op = new MyOperator(DB);
             //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc : 84845"));
+            
             //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
-            Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
+            
+            //Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
+            
             //op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
+
+            //op.DeleteDrug("Drug_ucxnqwcpsf");
+            //op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
             return;
         }
     }
