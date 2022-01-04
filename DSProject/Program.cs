@@ -33,6 +33,8 @@ namespace DSProject
     {
         bool PersistDiseases(string path);
         bool PersistDrugs(string path);
+        bool PersistDiseasesDrugs(string path);
+        bool PersistDrugsEffects(string path);
     }
 
     interface ICRD
@@ -110,7 +112,6 @@ namespace DSProject
             
         }
     }
-
 
     class MyOperator: IFinder, IContains, IPersistence, ICRD
     {
@@ -259,13 +260,7 @@ namespace DSProject
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            using (StreamWriter sw = new StreamWriter(@path))
-            {
-                foreach (var line in this.DB.DiseaseNames)
-                {
-                    sw.WriteLine(line);
-                }
-            }
+            File.WriteAllLines(@path, this.DB.DiseaseNames);
 
             watch.Stop();
             Console.WriteLine("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
@@ -277,16 +272,34 @@ namespace DSProject
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            using (StreamWriter sw = new StreamWriter(@path))
-            {
-                foreach (var line in this.DB.DrugsNames)
-                {
-                    sw.WriteLine(line);
-                }
-            }
+            File.WriteAllLines(@path, this.DB.DrugsNames);
 
             watch.Stop();
             Console.WriteLine("The time for persisting Drugs : " + watch.ElapsedMilliseconds);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool PersistDiseasesDrugs(string path)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            
+            File.WriteAllLines(@path, this.DB.DiseaseDrugsNames);
+            
+            watch.Stop();
+            Console.WriteLine("The time for persisting DiseaseDrugs : " + watch.ElapsedMilliseconds);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool PersistDrugsEffects(string path)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            File.WriteAllLines(@path, this.DB.DrugsEffectsNames);
+
+            watch.Stop();
+            Console.WriteLine("The time for persisting DrugsEffects : " + watch.ElapsedMilliseconds);
             return true;
         }
 
@@ -306,22 +319,26 @@ namespace DSProject
         public void DeleteDrug(string name)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            bool modifiedFlag = false;
             Thread th = new Thread(this.DeleteDrugHelper);
             Thread th2 = new Thread(this.YetAnotherDeleteDrugHelper);
 
             th.Start(name);
             th2.Start(name);
 
-            int i = 0;
-            foreach (var drug in this.DB.DrugsNames)
+            for (int i = 0; i < this.DB.DrugsNames.Count; i++)
             {
-                if (drug.Contains(name))
+                if (this.DB.DrugsNames[i].Contains(name))
                 {
                     this.DB.DrugsNames.RemoveAt(i);
-                    break;
+                    modifiedFlag = true;
                 }
+            }
 
-                i += 1;
+            if (modifiedFlag)
+            {
+                this.PersistDrugs(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
             }
 
             th.Join();
@@ -334,56 +351,65 @@ namespace DSProject
         private void DeleteDrugHelper(object name)
         {
             String name_ = name as string;
-            String[] dual;
-            String[] after;
+            //String[] dual;
+            //String[] after;
             String tmp = "";
+            bool modifiedFlag = false;
 
-            int i = 0;
-            foreach (var diseaseDrugs in this.DB.DiseaseDrugsNames)
+            for (int i = 0; i < this.DB.DiseaseDrugsNames.Count; i++)
             {
-                if (diseaseDrugs.Contains(name_))
+                if (this.DB.DiseaseDrugsNames[i].Contains(name_))
                 {
-                    dual = diseaseDrugs.Split(":");
-                    after = dual[1].Split(";");
+                    modifiedFlag = true;
+                    String[] dual = this.DB.DiseaseDrugsNames[i].Split(":");
+                    String[] after = dual[1].Split(";");
 
                     tmp += dual[0] + ":";
-                    
+
                     for (int j = 0; j < after.Length; j++)
                     {
-                        if (!after[i].Contains(name_))
+                        if (!after[j].Contains(name_))
                         {
-                            tmp += after[i] + ";";
+                            tmp += after[j] + ";";
                         }
                     }
 
                     this.DB.DiseaseDrugsNames[i] = tmp;
                 }
 
-                i += 1;
                 tmp = "";
+            }
+
+            if (modifiedFlag)
+            {
+                this.PersistDiseasesDrugs(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
             }
         }
 
         private void YetAnotherDeleteDrugHelper(object name)
         {
             string name_ = name as string;
-            String[] dual;
-            String[] after;
+            //String[] dual;
+            //String[] after;
             String tmp = "";
-            int i = 0;
+            bool modifiedFlag = false;
 
-            foreach (var drugsEffects in this.DB.DrugsEffectsNames)
+            for (int j = 0; j < this.DB.DrugsEffectsNames.Count; j++)
             {
-                dual = drugsEffects.Split(":");
+                String[] dual = this.DB.DrugsEffectsNames[j].Split(":");
                 if (dual[0].Contains(name_))
                 {
-                    this.DB.DrugsEffectsNames.RemoveAt(i);
-                } else if (dual[1].Contains(name_))
+                    this.DB.DrugsEffectsNames.RemoveAt(j);
+                    modifiedFlag = true;
+                }
+                else if (dual[1].Contains(name_))
                 {
-                    after = dual[1].Split(";");
+                    modifiedFlag = true;
+                    String[] after = dual[1].Split(";");
 
                     tmp += dual[0];
-                    for (int j = 0; j < after.Length; j++)
+                    for (int i = 0; i < after.Length; i++)
                     {
                         if (!after[i].Contains(name_))
                         {
@@ -391,11 +417,16 @@ namespace DSProject
                         }
                     }
 
-                    this.DB.DrugsEffectsNames[i] = tmp;
+                    this.DB.DrugsEffectsNames[j] = tmp;
                 }
 
-                i += 1;
                 tmp = "";
+            }
+
+            if (modifiedFlag)
+            {
+                this.PersistDrugsEffects(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects_2.txt");
             }
         }
 
@@ -403,23 +434,27 @@ namespace DSProject
         public void DeleteDisease(string name)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            bool modifiedFlag = false;
             Thread th = new Thread(this.DeleteDiseaseHelper);
 
             th.Start(name);
 
-            int i = 0;
-            foreach (var disease in this.DB.DiseaseNames)
+            for (int i = 0; i < this.DB.DiseaseNames.Count; i++)
             {
-                if (disease.Contains(name))
+                if (this.DB.DiseaseNames[i].Contains(name))
                 {
+                    modifiedFlag = true;
                     this.DB.DiseaseNames.RemoveAt(i);
                     break;
                 }
-
-                i += 1;
             }
-
             th.Join();
+
+            if (modifiedFlag)
+            {
+                this.PersistDiseases(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
+            }
 
             watch.Stop();
             Console.WriteLine("The time for deleting Disease : " + watch.ElapsedMilliseconds);
@@ -428,16 +463,22 @@ namespace DSProject
         private void DeleteDiseaseHelper(object name)
         {
             String name_ = name as string;
-            int i = 0;
-            foreach (var diseaseDrugs in this.DB.DiseaseDrugsNames)
+            bool modifiedFlag = false;
+
+            for (int i = 0; i < this.DB.DiseaseDrugsNames.Count; i++)
             {
-                if (diseaseDrugs.Contains(name_))
+                if (this.DB.DiseaseDrugsNames[i].Contains(name_))
                 {
+                    modifiedFlag = true;
                     this.DB.DiseaseDrugsNames.RemoveAt(i);
                     break;
                 }
+            }
 
-                i += 1;
+            if (modifiedFlag)
+            {
+                this.PersistDiseasesDrugs(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
             }
         }
     }
@@ -485,6 +526,13 @@ namespace DSProject
             //op.DeleteDrug("Drug_ucxnqwcpsf");
             //op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
 
+            //op.DeleteDisease("Dis_xmbjdyijco");
+            //op.DeleteDisease("Dis_lbqblqdzoo");
+
+
+            op.DeleteDrug("Drug_ucxnqwcpsf");
+            //op.DeleteDrug("Drug_mtystjzxzf");
+            //op.DeleteDrug("Drug_mtystjzxzf");
 
             return;
         }
