@@ -17,18 +17,22 @@ namespace DSProject
         
     }
 
+    // include two functions for checking existence of diseases & drugs
     interface IContains
     {
         bool ContainsDisease(String name);
         bool ContainsDrug(String name);
     }
 
+    // Find the drugs which are associated with a specific disease
+    // Find the drugs & diseases which are associated with a another drug
     interface IFinder
     {
         String FindDiseaseDrugs(String name);
         String FindDrugAssociated(String name);
     }
 
+    // Using for persisting our data about drugs & diseases
     interface IPersistence
     {
         bool PersistDiseases(string path);
@@ -37,6 +41,7 @@ namespace DSProject
         bool PersistDrugsEffects(string path);
     }
 
+    // Apply CRUD operations to MyOperator class
     interface ICRD
     {
         void CreateDisease(string name);
@@ -45,6 +50,7 @@ namespace DSProject
         void DeleteDisease(string name);
     }
 
+    // Application BD class in sync mode
     class DiseaseDrugDb
     {
         public List<String> DrugsNames;
@@ -80,6 +86,7 @@ namespace DSProject
         }
     }
 
+    // Application BD class in Async mode
     class DiseaseDrugDbAsync
     {
         public String[] DrugsNames;
@@ -113,6 +120,7 @@ namespace DSProject
         }
     }
 
+    // Do all of fundamental operations for us
     class MyOperator: IFinder, IContains, IPersistence, ICRD
     {
         private DiseaseDrugDb DB;
@@ -331,6 +339,7 @@ namespace DSProject
                 if (this.DB.DrugsNames[i].Contains(name))
                 {
                     this.DB.DrugsNames.RemoveAt(i);
+                    i -= 1;
                     modifiedFlag = true;
                 }
             }
@@ -401,6 +410,7 @@ namespace DSProject
                 if (dual[0].Contains(name_))
                 {
                     this.DB.DrugsEffectsNames.RemoveAt(j);
+                    j -= 1;
                     modifiedFlag = true;
                 }
                 else if (dual[1].Contains(name_))
@@ -408,7 +418,7 @@ namespace DSProject
                     modifiedFlag = true;
                     String[] after = dual[1].Split(";");
 
-                    tmp += dual[0];
+                    tmp += dual[0] + ":";
                     for (int i = 0; i < after.Length; i++)
                     {
                         if (!after[i].Contains(name_))
@@ -516,11 +526,11 @@ namespace DSProject
 
             MyOperator op = new MyOperator(DB);
             //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc : 84845"));
-            
+
             //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
-            
+
             //Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
-            
+
             //op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
 
             //op.DeleteDrug("Drug_ucxnqwcpsf");
@@ -530,9 +540,10 @@ namespace DSProject
             //op.DeleteDisease("Dis_lbqblqdzoo");
 
 
-            op.DeleteDrug("Drug_ucxnqwcpsf");
-            //op.DeleteDrug("Drug_mtystjzxzf");
-            //op.DeleteDrug("Drug_mtystjzxzf");
+            //op.DeleteDrug("Drug_ucxnqwcpsf"); // Test the drugs.txt, look at end of file
+            op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
+            op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
+            //op.DeleteDrug("Drug_mlsvozghuj"); // Test the effects.txt look at end of file
 
             return;
         }
