@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Resources;
 using System.Threading;
 
 namespace DSProject
@@ -541,8 +539,8 @@ namespace DSProject
 
 
             //op.DeleteDrug("Drug_ucxnqwcpsf"); // Test the drugs.txt, look at end of file
-            op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
-            op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
+            //op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
+            //op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
             //op.DeleteDrug("Drug_mlsvozghuj"); // Test the effects.txt look at end of file
 
             return;
