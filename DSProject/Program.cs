@@ -43,7 +43,7 @@ namespace DSProject
     interface ICRD
     {
         void CreateDisease(string name);
-        void CreateDrug(string name);
+        void CreateDrug(string name, string drugEffects, string diseasesDrugs);
         void DeleteDrug(string name);
         void DeleteDisease(string name);
     }
@@ -310,15 +310,53 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void CreateDisease(string name)
+        public void CreateDisease(string input) // Should be in document format
         {
-            
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            String[] dual = input.Split(":");
+            this.DB.DiseaseNames.Add(dual[0]);
+            this.DB.DiseaseDrugsNames.Add(input);
+
+            watch.Stop();
+            Console.WriteLine("The time for creating a disease" +
+                              " with associated drugs : " + watch.ElapsedMilliseconds);
         }
 
         /// <inheritdoc />
-        public void CreateDrug(string name)
+        public void CreateDrug(string drugName, 
+            string drugsEffects, // must be in this format   drug_name:drug_effect;drug_name:drug_effect;
+            string diseasesDrugs //  must be in this format  disease_name:drug_effect;disease_name:drug_effect;
+            )
         {
-            throw new NotImplementedException();
+            foreach (var drug in this.DB.DrugsNames)
+            {
+                if (drug == drugName)
+                {
+                    Console.WriteLine("Drug is repetitious !");
+                    return;
+                }
+            }
+
+            Thread th1 = new Thread(this.CreateDrugHelper);
+            Thread th2 = new Thread(this.CreateDrugHelper2);
+
+            th1.Start(drugName);
+            th2.Start(diseasesDrugs);
+
+            
+
+        }
+
+        private void CreateDrugHelper(object input)
+        {
+            string drugName = input as string;
+            this.DB.DrugsNames.Add(drugName);
+        }
+
+        private void CreateDrugHelper2(object input)
+        {
+
         }
 
         /// <inheritdoc />
