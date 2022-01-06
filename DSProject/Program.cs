@@ -310,7 +310,7 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void CreateDisease(string input) // Should be in document format
+        public void CreateDisease(string input) // The input should be in document format // Test is required
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -324,10 +324,12 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void CreateDrug(string drugName, 
-            string drugsEffects, // must be in this format   drug_name:drug_effect;drug_name:drug_effect;
-            string diseasesDrugs //  must be in this format  disease_name:drug_effect;disease_name:drug_effect;
-            )
+        public void CreateDrug( // test is required
+            string drugName, // drug_aa
+            string drugsEffects, //  must be in this format   drug_aa:drug_name,drug_effect;drug_name,drug_effect
+            string diseasesDrugs, // must be in this format   drug_aa:disease_name,drug_effect;disease_name,drug_effect
+            string selfDrugEffects // must be in document format
+            ) // Test is required
         {
             foreach (var drug in this.DB.DrugsNames)
             {
@@ -341,22 +343,69 @@ namespace DSProject
             Thread th1 = new Thread(this.CreateDrugHelper);
             Thread th2 = new Thread(this.CreateDrugHelper2);
 
-            th1.Start(drugName);
+            th1.Start(drugsEffects);
             th2.Start(diseasesDrugs);
 
-            
+            this.DB.DrugsNames.Add(drugName);
 
+            th1.Join();
+            th2.Join();
+
+            this.DB.DrugsEffectsNames.Add(selfDrugEffects);
         }
 
         private void CreateDrugHelper(object input)
         {
-            string drugName = input as string;
-            this.DB.DrugsNames.Add(drugName);
+            string drugsEffects = input as string;
+            String[] dual = drugsEffects.Split(":");
+            String[] after = dual[1].Split(";");
+            Dictionary<String, String> drugsEffectsDict = new Dictionary<string, string>();
+
+            String[] tmp;
+            foreach (var str in after)
+            {
+                tmp = str.Split(",");
+                drugsEffectsDict.Add(tmp[0], tmp[1]);
+            }
+
+            foreach (var kv in drugsEffectsDict)
+            {
+                for (int i = 0; i < this.DB.DrugsEffectsNames.Count; i++)
+                {
+                    if (this.DB.DrugsEffectsNames[i].Contains(kv.Key))
+                    {
+                        this.DB.DrugsEffectsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
+                    }
+                }
+            }
         }
 
         private void CreateDrugHelper2(object input)
         {
+            string diseasesDrugs = input as string;
+            String[] dual = diseasesDrugs.Split(":"); // dual[0] is the drug_name like drug_aa
+            String[] after = dual[1].Split(";");
+            Dictionary<String, String> diseaseEffects = new Dictionary<string, string>();
 
+            String[] tmp;
+            foreach (var str in after)
+            {
+                tmp = str.Split(",");
+                diseaseEffects.Add(tmp[0], tmp[1]);
+            }
+
+            foreach (var kv in diseaseEffects)
+            {
+                for (int i = 0; i < this.DB.DiseaseDrugsNames.Count; i++)
+                {
+                    if (this.DB.DiseaseDrugsNames[i].Contains(kv.Key))
+                    {
+                        this.DB.DiseaseDrugsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
+                        diseaseEffects.Remove(kv.Key);
+                        break;
+                    }
+                }
+            }
         }
 
         /// <inheritdoc />
