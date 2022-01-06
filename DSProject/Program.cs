@@ -43,7 +43,10 @@ namespace DSProject
     interface ICRD
     {
         void CreateDisease(string name);
-        void CreateDrug(string name, string drugEffects, string diseasesDrugs);
+        void CreateDrug(string name,
+            string drugEffects, 
+            string diseasesDrugs,
+            string selfDrugEffects);
         void DeleteDrug(string name);
         void DeleteDisease(string name);
     }
@@ -375,6 +378,8 @@ namespace DSProject
                     if (this.DB.DrugsEffectsNames[i].Contains(kv.Key))
                     {
                         this.DB.DrugsEffectsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
+                        drugsEffectsDict.Remove(kv.Key);
+                        break;
                     }
                 }
             }
