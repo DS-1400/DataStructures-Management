@@ -62,25 +62,26 @@ namespace DSProject
         public DiseaseDrugDb() // 170 Milliseconds for first time 
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
+
             this.DiseaseNames =
                 new List<string>(
                     File.ReadAllLines(
                         @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt"));
 
-            this.DrugsNames = 
+            this.DrugsNames =
                 new List<string>(
                     File.ReadAllLines(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt"));
-            
+                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt"));
+
             this.DiseaseDrugsNames =
                 new List<string>(
                     File.ReadAllLines(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt"));
+                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt"));
 
-            this.DrugsEffectsNames = 
+            this.DrugsEffectsNames =
                 new List<string>(
                     File.ReadAllLines(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt"));
+                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt"));
 
             watch10.Stop();
             Console.WriteLine("The fucking time of Reading all files : " + watch10.ElapsedMilliseconds);
@@ -128,9 +129,26 @@ namespace DSProject
 
         private String Temp;
 
+        private String DiseasePath;
+        private String DiseaseDrugsPath;
+        private String DrugsPath;
+        private String DrugsEffectsPath;
+
         public MyOperator(DiseaseDrugDb db)
         {
             this.DB = db;
+
+            this.DiseasePath = 
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt";
+
+            this.DiseaseDrugsPath = 
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt";
+
+            this.DrugsEffectsPath =
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt";
+
+            this.DrugsPath =
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt";
         }
 
         /// <inheritdoc />
@@ -313,13 +331,28 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void CreateDisease(string input) // The input should be in document format // Test is required
+        public void CreateDisease(string input) // The input should be in document format // Test is required Need handle duplicated diseases
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             String[] dual = input.Split(":");
-            this.DB.DiseaseNames.Add(dual[0]);
-            this.DB.DiseaseDrugsNames.Add(input);
+            bool modifiedFlag = false;
+
+            if (!this.DB.DiseaseNames.Contains(dual[0]))
+            {
+                this.DB.DiseaseNames.Add(dual[0]);
+                this.DB.DiseaseDrugsNames.Add(input);
+                modifiedFlag = true;
+            }
+
+            if (modifiedFlag)
+            {
+                // Theses addresses must get from input
+                this.PersistDiseasesDrugs(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt");
+                this.PersistDiseases(
+                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt");
+            } 
 
             watch.Stop();
             Console.WriteLine("The time for creating a disease" +
@@ -328,19 +361,17 @@ namespace DSProject
 
         /// <inheritdoc />
         public void CreateDrug( // test is required
-            string drugName, // drug_aa
+            string drugName, // drug_aa : number
             string drugsEffects, //  must be in this format   drug_aa:drug_name,drug_effect;drug_name,drug_effect
             string diseasesDrugs, // must be in this format   drug_aa:disease_name,drug_effect;disease_name,drug_effect
             string selfDrugEffects // must be in document format
             ) // Test is required
         {
-            foreach (var drug in this.DB.DrugsNames)
+
+            if (this.DB.DrugsNames.Contains(drugName))
             {
-                if (drug == drugName)
-                {
-                    Console.WriteLine("Drug is repetitious !");
-                    return;
-                }
+                Console.WriteLine("The drug is repetitious");
+                return;
             }
 
             Thread th1 = new Thread(this.CreateDrugHelper);
@@ -350,11 +381,13 @@ namespace DSProject
             th2.Start(diseasesDrugs);
 
             this.DB.DrugsNames.Add(drugName);
+            this.PersistDrugs(this.DrugsPath);
 
             th1.Join();
             th2.Join();
 
             this.DB.DrugsEffectsNames.Add(selfDrugEffects);
+            this.PersistDrugsEffects(this.DrugsEffectsPath);
         }
 
         private void CreateDrugHelper(object input)
@@ -375,7 +408,7 @@ namespace DSProject
             {
                 for (int i = 0; i < this.DB.DrugsEffectsNames.Count; i++)
                 {
-                    if (this.DB.DrugsEffectsNames[i].Contains(kv.Key))
+                    if (this.DB.DrugsEffectsNames[i].Split(":")[0].Contains(kv.Key))
                     {
                         this.DB.DrugsEffectsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
                         drugsEffectsDict.Remove(kv.Key);
@@ -383,6 +416,8 @@ namespace DSProject
                     }
                 }
             }
+
+            this.PersistDrugsEffects(this.DrugsEffectsPath);
         }
 
         private void CreateDrugHelper2(object input)
@@ -411,6 +446,8 @@ namespace DSProject
                     }
                 }
             }
+
+            this.PersistDiseasesDrugs(this.DiseaseDrugsPath);
         }
 
         /// <inheritdoc />
@@ -434,7 +471,7 @@ namespace DSProject
                 }
             }
 
-            if (modifiedFlag)
+            if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDrugs(
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
@@ -479,7 +516,7 @@ namespace DSProject
                 tmp = "";
             }
 
-            if (modifiedFlag)
+            if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDiseasesDrugs(
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
@@ -523,7 +560,7 @@ namespace DSProject
                 tmp = "";
             }
 
-            if (modifiedFlag)
+            if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDrugsEffects(
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects_2.txt");
@@ -550,7 +587,7 @@ namespace DSProject
             }
             th.Join();
 
-            if (modifiedFlag)
+            if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDiseases(
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
@@ -575,7 +612,7 @@ namespace DSProject
                 }
             }
 
-            if (modifiedFlag)
+            if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDiseasesDrugs(
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
@@ -634,6 +671,14 @@ namespace DSProject
             //op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
             //op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
             //op.DeleteDrug("Drug_mlsvozghuj"); // Test the effects.txt look at end of file
+
+            // op.CreateDisease("Dis_aaaaaaaaaa : (Drug_ddddddd,+) ; (Drug_eeeeeee,-) ; (Drug_dfwdfwdfw,+)"); // Test for creating disease
+
+            // op.CreateDrug( // Test for create drug
+            //     "Drug_aaaaaaaaaa : 9999",
+            //     "Drug_aaaaaaaaaa:Drug_ugqzkbyrrr,Eff_tvhidekyud;Drug_rxqdjdgkva,Eff_bsmcbsnxps",
+            //     "Drug_aaaaaaaaaa:Dis_qfwtffeczg,+;Dis_xikkgsfmlz,-",
+            //     "Drug_aaaaaaaaaa : (Drug_ugqzkbyryr,Eff_kbbhexfirm) ; (Drug_qlihgxyjok,Eff_fsmsfgmihc)");
 
             return;
         }
