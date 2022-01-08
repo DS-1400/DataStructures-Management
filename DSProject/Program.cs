@@ -127,6 +127,7 @@ namespace DSProject
         private DiseaseDrugDb DB;
 
         private String Temp;
+        private Char[] TrimParams;
 
         private String DiseasePath;
         private String DiseaseDrugsPath;
@@ -148,6 +149,8 @@ namespace DSProject
 
             this.DrugsPath =
                 @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt";
+
+            this.TrimParams = new[] {';', ' '};
         }
 
         /// <inheritdoc />
@@ -262,7 +265,7 @@ namespace DSProject
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = this.DB.DrugsNames.Contains(name);
+            var result = this.DB.DiseaseNames.Contains(name);
 
             watch10.Stop();
             Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
@@ -494,8 +497,8 @@ namespace DSProject
         private void DeleteDrugHelper(object name)
         {
             String name_ = name as string;
-            //String[] dual;
-            //String[] after;
+            String[] dual;
+            String[] after;
             String tmp = "";
             bool modifiedFlag = false;
 
@@ -504,8 +507,8 @@ namespace DSProject
                 if (this.DB.DiseaseDrugsNames[i].Contains(name_))
                 {
                     modifiedFlag = true;
-                    String[] dual = this.DB.DiseaseDrugsNames[i].Split(":");
-                    String[] after = dual[1].Split(";");
+                    dual = this.DB.DiseaseDrugsNames[i].Split(":");
+                    after = dual[1].Split(";");
 
                     tmp += dual[0] + ":";
 
@@ -517,7 +520,15 @@ namespace DSProject
                         }
                     }
 
-                    this.DB.DiseaseDrugsNames[i] = tmp;
+                    if (tmp.Contains('('))
+                    {
+                        this.DB.DiseaseDrugsNames[i] = tmp.TrimEnd(this.TrimParams);
+                    }
+                    else
+                    {
+                        this.DB.DiseaseDrugsNames.RemoveAt(i);
+                        i -= 1;
+                    }
                 }
 
                 tmp = "";
@@ -533,14 +544,14 @@ namespace DSProject
         private void YetAnotherDeleteDrugHelper(object name)
         {
             string name_ = name as string;
-            //String[] dual;
-            //String[] after;
+            String[] dual;
+            String[] after;
             String tmp = "";
             bool modifiedFlag = false;
 
             for (int j = 0; j < this.DB.DrugsEffectsNames.Count; j++)
             {
-                String[] dual = this.DB.DrugsEffectsNames[j].Split(":");
+                dual = this.DB.DrugsEffectsNames[j].Split(":");
                 if (dual[0].Contains(name_))
                 {
                     this.DB.DrugsEffectsNames.RemoveAt(j);
@@ -550,7 +561,7 @@ namespace DSProject
                 else if (dual[1].Contains(name_))
                 {
                     modifiedFlag = true;
-                    String[] after = dual[1].Split(";");
+                    after = dual[1].Split(";");
 
                     tmp += dual[0] + ":";
                     for (int i = 0; i < after.Length; i++)
@@ -583,15 +594,12 @@ namespace DSProject
 
             th.Start(name);
 
-            for (int i = 0; i < this.DB.DiseaseNames.Count; i++)
+            if (this.DB.DiseaseNames.Contains(name))
             {
-                if (this.DB.DiseaseNames[i].Contains(name))
-                {
-                    modifiedFlag = true;
-                    this.DB.DiseaseNames.RemoveAt(i);
-                    break;
-                }
+                modifiedFlag = true;
+                this.DB.DiseaseNames.Remove(name);
             }
+
             th.Join();
 
             if (modifiedFlag) // Theses addresses must get from input
@@ -675,7 +683,9 @@ namespace DSProject
             Console.ReadLine();
             //Console
            
-            Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
+            Console.WriteLine(op.ContainsDisease("Dis_xmbjdyijco"));
+
+            //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
 
             //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
 
@@ -683,7 +693,7 @@ namespace DSProject
 
             //op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
 
-            //op.DeleteDrug("Drug_ucxnqwcpsf");
+            //op.DeleteDrug("Drug_ugqzkbyrrr");
             //op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
 
             //op.DeleteDisease("Dis_xmbjdyijco");
@@ -693,6 +703,8 @@ namespace DSProject
             //op.DeleteDrug("Drug_ucxnqwcpsf"); // Test the drugs.txt, look at end of file
             //op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
             //op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
+            //op.DeleteDrug("Drug_wdqjyjytrl"); // Test the alergies.txt look at end of file
+            //op.DeleteDrug("Drug_xkmxoweplh"); // Test the alergies.txt look at end of file
             //op.DeleteDrug("Drug_mlsvozghuj"); // Test the effects.txt look at end of file
 
             // op.CreateDisease("Dis_aaaaaaaaaa : (Drug_ddddddd,+) ; (Drug_eeeeeee,-) ; (Drug_dfwdfwdfw,+)"); // Test for creating disease
