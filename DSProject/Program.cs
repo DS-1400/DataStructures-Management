@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.VisualBasic.CompilerServices;
-
 namespace DSProject
 {
     interface ILogger
@@ -278,7 +274,15 @@ namespace DSProject
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = this.DB.DrugsNames.Contains(name);
+            bool result = false;
+            foreach (var drug in this.DB.DrugsNames)
+            {
+                result = drug.Contains(name);
+                if (result == true)
+                {
+                    break;
+                }
+            }
 
             watch10.Stop();
             Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
@@ -671,7 +675,7 @@ namespace DSProject
             Console.ReadLine();
             //Console
            
-            //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc : 84845"));
+            Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
 
             //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
 
