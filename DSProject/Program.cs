@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace DSProject
 {
@@ -618,40 +621,56 @@ namespace DSProject
                     @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
             }
         }
+
+        public void ApplyInflationRate(int infRate)
+        {
+            Thread th1 = new Thread(this.ApplyInflationRateHelper);
+            th1.Start();
+
+            String[] tmp;
+            for (int i = 0; i < this.DB.DrugsNames.Count / 2; i++)
+            {
+                tmp = this.DB.DrugsNames[i].Split(":");
+            }
+
+            th1.Join();
+            this.PersistDrugs(this.DrugsPath);
+        }
+
+        private void ApplyInflationRateHelper(object input)
+        {
+            int infRate = (int) input;
+
+            String[] tmp;
+            for (int i = (this.DB.DrugsNames.Count / 2); i < this.DB.DrugsNames.Count; i++)
+            {
+                tmp = this.DB.DrugsNames[i].Split(":");
+            }
+        }
     }
 
     class Program
     {
-        // static void Main(string[] args)
-        // {
-        //     Console.WriteLine("Hello World!");
-        //     DiseaseDrugDbAsync db = new DiseaseDrugDbAsync();
-        //
-        //     Thread.Sleep(1000);
-        //     Console.WriteLine(db.DrugsEffectsNames[0]);
-        //
-        //     return;
-        // }
-
         private static DiseaseDrugDb DB;
 
         private static void InitDb()
         {
-            DB = new DiseaseDrugDb();
+            if (Program.DB == null)
+            {
+                DB = new DiseaseDrugDb();
+            }
         }
 
         static void Main(string[] args)
         {
-            Thread th = new Thread(InitDb);
-            th.Start();
-            
-            Console.WriteLine("Hello World!");
+            InitDb();
+            MyOperator op = new MyOperator(DB);
 
-            th.Join();
+            //Console 
             Console.WriteLine("hello enter something :");
             Console.ReadLine();
-
-            MyOperator op = new MyOperator(DB);
+            //Console
+           
             //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc : 84845"));
 
             //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
