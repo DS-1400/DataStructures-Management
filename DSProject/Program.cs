@@ -7,13 +7,24 @@ using System.Threading;
 namespace DSProject
 {
     interface ILogger
-    {
-        
+    { 
+        void Error(string message);
+        void Warning(string message);
     }
 
-    class MyLogger
+    class MyLogger: ILogger
     {
-        
+        /// You should change the foreground color to RED & print it then reset the foreground color
+        public void Error(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// You should change the foreground color to YELLOW & print it then reset the foreground color
+        public void Warning(string message)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     // include two functions for checking existence of diseases & drugs
@@ -41,7 +52,7 @@ namespace DSProject
     }
 
     // Apply CRUD operations to MyOperator class
-    interface ICRD
+    interface ICrd
     {
         void CreateDisease(string name);
         void CreateDrug(string name,
@@ -124,7 +135,7 @@ namespace DSProject
     }
 
     // Do all of fundamental operations for us
-    class MyOperator: IFinder, IContains, IPersistence, ICRD
+    class MyOperator: IFinder, IContains, IPersistence, ICrd
     {
         private DiseaseDrugDb DB;
 
@@ -697,8 +708,11 @@ namespace DSProject
             InitDb();
             MyOperator op = new MyOperator(DB);
 
-            //Console 
+            //Console
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("hello enter something :");
+            Console.ResetColor();
+            Console.WriteLine("Just for manipulation");
             Console.ReadLine();
             //Console
 
