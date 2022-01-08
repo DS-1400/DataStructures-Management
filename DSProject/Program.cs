@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+
+
 namespace DSProject
 {
     interface ILogger
@@ -733,7 +735,7 @@ namespace DSProject
             //     "Drug_aaaaaaaaaa : (Drug_ugqzkbyryr,Eff_kbbhexfirm) ; (Drug_qlihgxyjok,Eff_fsmsfgmihc)");
 
 
-            op.ApplyInflationRate(2);
+            // op.ApplyInflationRate(2);
 
             return;
         }
