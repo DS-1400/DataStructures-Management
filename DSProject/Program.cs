@@ -572,7 +572,15 @@ namespace DSProject
                         }
                     }
 
-                    this.DB.DrugsEffectsNames[j] = tmp;
+                    if (tmp.Contains('('))
+                    {
+                        this.DB.DrugsEffectsNames[j] = tmp.TrimEnd(this.TrimParams);
+                    }
+                    else
+                    {
+                        this.DB.DrugsEffectsNames.RemoveAt(j);
+                        j -= 1;
+                    }
                 }
 
                 tmp = "";
@@ -637,12 +645,16 @@ namespace DSProject
         public void ApplyInflationRate(int infRate)
         {
             Thread th1 = new Thread(this.ApplyInflationRateHelper);
-            th1.Start();
+            th1.Start(infRate);
 
-            String[] tmp;
+            String[] dual;
             for (int i = 0; i < this.DB.DrugsNames.Count / 2; i++)
             {
-                tmp = this.DB.DrugsNames[i].Split(":");
+                dual = this.DB.DrugsNames[i].Split(":");
+                int price = int.Parse(dual[1].Trim());
+                price *= infRate;
+
+                this.DB.DrugsNames[i] = dual[0] + ": " + price;
             }
 
             th1.Join();
@@ -653,10 +665,15 @@ namespace DSProject
         {
             int infRate = (int) input;
 
-            String[] tmp;
+            String[] dual;
             for (int i = (this.DB.DrugsNames.Count / 2); i < this.DB.DrugsNames.Count; i++)
             {
-                tmp = this.DB.DrugsNames[i].Split(":");
+                dual = this.DB.DrugsNames[i].Split(":");
+
+                int price = int.Parse(dual[1].Trim());
+                price *= infRate;
+
+                this.DB.DrugsNames[i] = dual[0] + ": " + price;
             }
         }
     }
@@ -682,30 +699,30 @@ namespace DSProject
             Console.WriteLine("hello enter something :");
             Console.ReadLine();
             //Console
-           
-            Console.WriteLine(op.ContainsDisease("Dis_xmbjdyijco"));
 
-            //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
+            // Console.WriteLine(op.ContainsDisease("Dis_xmbjdyijco"));
 
-            //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
+            // Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
 
-            //Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
+            // Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
 
-            //op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
+            // Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
 
-            //op.DeleteDrug("Drug_ugqzkbyrrr");
-            //op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
+            // op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
 
-            //op.DeleteDisease("Dis_xmbjdyijco");
-            //op.DeleteDisease("Dis_lbqblqdzoo");
+            // op.DeleteDrug("Drug_ugqzkbyrrr");
+            // op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
+
+            // op.DeleteDisease("Dis_xmbjdyijco"); // Test the diseases.txt look at end of file
+            // op.DeleteDisease("Dis_lbqblqdzoo"); // Test the alergies.txt look at end of file
 
 
-            //op.DeleteDrug("Drug_ucxnqwcpsf"); // Test the drugs.txt, look at end of file
-            //op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
-            //op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
-            //op.DeleteDrug("Drug_wdqjyjytrl"); // Test the alergies.txt look at end of file
-            //op.DeleteDrug("Drug_xkmxoweplh"); // Test the alergies.txt look at end of file
-            //op.DeleteDrug("Drug_mlsvozghuj"); // Test the effects.txt look at end of file
+            // op.DeleteDrug("Drug_ucxnqwcpsf"); // Test the drugs.txt, look at end of file
+            // op.DeleteDrug("Drug_vobddjeuyu"); // Test the alergies.txt look at end of file
+            // op.DeleteDrug("Drug_uecqvzgzwq"); // Test the alergies.txt look at end of file
+            // op.DeleteDrug("Drug_wdqjyjytrl"); // Test the alergies.txt look at end of file
+            // op.DeleteDrug("Drug_xkmxoweplh"); // Test the alergies.txt look at end of file
+            // op.DeleteDrug("Drug_mlsvozghuj"); // Test the effects.txt look at end of file
 
             // op.CreateDisease("Dis_aaaaaaaaaa : (Drug_ddddddd,+) ; (Drug_eeeeeee,-) ; (Drug_dfwdfwdfw,+)"); // Test for creating disease
 
@@ -714,6 +731,9 @@ namespace DSProject
             //     "Drug_aaaaaaaaaa:Drug_ugqzkbyrrr,Eff_tvhidekyud;Drug_rxqdjdgkva,Eff_bsmcbsnxps",
             //     "Drug_aaaaaaaaaa:Dis_qfwtffeczg,+;Dis_xikkgsfmlz,-",
             //     "Drug_aaaaaaaaaa : (Drug_ugqzkbyryr,Eff_kbbhexfirm) ; (Drug_qlihgxyjok,Eff_fsmsfgmihc)");
+
+
+            op.ApplyInflationRate(2);
 
             return;
         }
