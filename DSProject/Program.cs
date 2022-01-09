@@ -199,7 +199,8 @@ namespace DSProject
             return result.TrimEnd(this.TrimParams);
         }
 
-        /// <inheritdoc />
+        // It will print three lines first for diseases, third for drugs have effects on target,
+        // second for target has effects on other drugs
         public string FindDrugAssociated(string name)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
