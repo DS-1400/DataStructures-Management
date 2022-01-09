@@ -173,7 +173,7 @@ namespace DSProject
 
             String[] dual;
             String[] after;
-            String result = name + ":";
+            String result = name + " : ";
             foreach (var line in this.DB.DiseaseDrugsNames)
             {
                 dual = line.Split(":");
@@ -187,7 +187,7 @@ namespace DSProject
                         after[i] = after[i].Trim();
                         if (after[i].Contains('+'))
                         {
-                            result += after[i];
+                            result += after[i] + " ; ";
                         }
                     }
                     break;
@@ -196,7 +196,7 @@ namespace DSProject
 
             watch10.Stop();
             Console.WriteLine("The Time for DiseaseDrugs function : " + watch10.ElapsedMilliseconds);
-            return result;
+            return result.TrimEnd(this.TrimParams);
         }
 
         /// <inheritdoc />
@@ -206,8 +206,8 @@ namespace DSProject
 
             String[] dual;
             String[] after;
-            String result1 = name + ":";
-            this.Temp = name + ":";
+            String result1 = name + " : ";
+            this.Temp = name + " : ";
 
             Thread th = new Thread(this.FindDrugAssociatedHelper);
             th.Start(name);
@@ -220,17 +220,28 @@ namespace DSProject
                     dual[0] = dual[0].Trim();
                     dual[1] = dual[1].Trim();
 
-                    result1 += dual[0];
+                    //result1 += dual[0];
 
                     after = dual[1].Split(";");
                     for (int i = 0; i < after.Length; i++)
                     {
                         if (after[i].Contains(name))
                         {
-                            result1 += after[i] + ";";
+                            result1 += "(" + dual[0] + "," + after[i].Split(",")[1] + "; ";
                             break;
                         }
                     }
+                }
+            }
+
+            String result2 = "";
+            foreach (var drugEffects in this.DB.DrugsEffectsNames)
+            {
+                dual = drugEffects.Split(":");
+                if (dual[0].Contains(name))
+                {
+                    result2 = drugEffects;
+                    break;
                 }
             }
 
@@ -238,7 +249,8 @@ namespace DSProject
 
             watch.Stop();
             Console.WriteLine("The Time for FindDrugsAssociation function : " + watch.ElapsedMilliseconds);
-            return result1 + "\n" + this.Temp;
+            return result1.TrimEnd(this.TrimParams) + "\n" + this.Temp.TrimEnd(this.TrimParams) + 
+                   "\n" + result2;
         }
 
         /// <inheritdoc />
@@ -258,12 +270,12 @@ namespace DSProject
                 {
                     after = dual[1].Split(";");
 
-                    this.Temp += dual[0];
+                    //this.Temp += dual[0];
                     for (int i = 0; i < after.Length; i++)
                     {
                         if (after[i].Contains(name_))
                         {
-                            this.Temp += after[i] + ";";
+                            this.Temp += "(" + dual[0] + "," + after[i].Split(",")[1] + "; ";
                             break;
                         }
                     }
@@ -723,6 +735,8 @@ namespace DSProject
             // Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
 
             // Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
+            // Console.WriteLine(op.FindDrugAssociated("Drug_vobddjeuyu"));
+            // Console.WriteLine(op.FindDrugAssociated("Drug_mlsvozghuj"));
 
             // op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
 
