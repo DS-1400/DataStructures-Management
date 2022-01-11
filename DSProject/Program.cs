@@ -10,6 +10,7 @@ namespace DSProject
     { 
         void Error(string message);
         void Warning(string message);
+        void Info(string message);
     }
 
     class MyLogger: ILogger
@@ -17,13 +18,25 @@ namespace DSProject
         /// You should change the foreground color to RED & print it then reset the foreground color
         public void Error(string message)
         {
-            throw new NotImplementedException();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("ERROR : " + message);
+            Console.ResetColor();
         }
 
         /// You should change the foreground color to YELLOW & print it then reset the foreground color
         public void Warning(string message)
         {
-            throw new NotImplementedException();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Warning : " + message);
+            Console.ResetColor();
+        }
+
+        /// <inheritdoc />
+        public void Info(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("INFO : " + message);
+            Console.ResetColor();
         }
     }
 
