@@ -13,9 +13,125 @@ namespace DSProject
         void Info(string message);
     }
 
+    // Required functions that should be implemented
+    interface IConsole
+    {
+        void ReadFiles();
+
+        void ReadFiles(string drugsPath,
+            string diseasesPath, string drugsEffectsPath,
+            string diseasesDrugsPath);
+
+        void IncreaseDrugsCost(int inflationRate);
+
+        int CalcPrescription(string[] drugs);
+
+        String FindDrug(string drugName);
+
+        String FindDisease(string diseaseName);
+
+        bool AddDrug(string drugName);
+
+        bool AddDisease(string diseaseName);
+
+        String DeleteDrug(string drugName);
+
+        String DeleteDisease(string diseaseName);
+
+        String DrugMalfunction(string[] drugs);
+
+        String DiseaseMalfunction(string[] drugs);
+    }
+
+    class MyConsole: IConsole
+    {
+
+        private DiseaseDrugDb Db;
+        private MyOperator Operator;
+
+        public MyConsole(DiseaseDrugDb db, MyOperator op)
+        {
+            this.Db = db;
+            this.Operator = op;
+        }
+
+        /// <inheritdoc />
+        public void ReadFiles()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void ReadFiles(string drugsPath, 
+            string diseasesPath, string drugsEffectsPath, 
+            string diseasesDrugsPath)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void IncreaseDrugsCost(int inflationRate)
+        {
+           this.Operator.ApplyInflationRate(inflationRate);
+        }
+
+        /// <inheritdoc />
+        public int CalcPrescription(string[] drugs)
+        {
+            return 0;
+        }
+
+        /// <inheritdoc />
+        public string FindDrug(string drugName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public string FindDisease(string diseaseName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public bool AddDrug(string drugName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public bool AddDisease(string diseaseName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public string DeleteDrug(string drugName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public string DeleteDisease(string diseaseName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public string DrugMalfunction(string[] drugs)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public string DiseaseMalfunction(string[] drugs)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     class MyLogger: ILogger
     {
-        /// You should change the foreground color to RED & print it then reset the foreground color
         public void Error(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -23,7 +139,6 @@ namespace DSProject
             Console.ResetColor();
         }
 
-        /// You should change the foreground color to YELLOW & print it then reset the foreground color
         public void Warning(string message)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -31,7 +146,6 @@ namespace DSProject
             Console.ResetColor();
         }
 
-        /// <inheritdoc />
         public void Info(string message)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -153,12 +267,20 @@ namespace DSProject
         private DiseaseDrugDb DB;
 
         private String Temp;
+        private int TempResult;
         private Char[] TrimParams;
 
         private String DiseasePath;
         private String DiseaseDrugsPath;
         private String DrugsPath;
         private String DrugsEffectsPath;
+
+        private String SDiseasePath;
+        private String SDiseaseDrugsPath;
+        private String SDrugsPath;
+        private String SDrugsEffectsPath;
+
+        private ReaderWriterLockSlim RWL;
 
         public MyOperator(DiseaseDrugDb db)
         {
@@ -175,6 +297,19 @@ namespace DSProject
 
             this.DrugsPath =
                 @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt";
+
+            this.SDiseasePath =
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt";
+
+            this.SDiseaseDrugsPath =
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt";
+
+            this.SDrugsEffectsPath =
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects_2.txt";
+
+            this.SDrugsPath =
+                @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt";
+
 
             this.TrimParams = new[] {';', ' '};
         }
@@ -398,9 +533,9 @@ namespace DSProject
             {
                 // Theses addresses must get from input
                 this.PersistDiseasesDrugs(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt");
+                    this.DiseaseDrugsPath);
                 this.PersistDiseases(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt");
+                    this.DiseasePath);
             } 
 
             watch.Stop();
@@ -523,7 +658,7 @@ namespace DSProject
             if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDrugs(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
+                    this.SDrugsPath);
             }
 
             th.Join();
@@ -576,7 +711,7 @@ namespace DSProject
             if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDiseasesDrugs(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
+                    this.SDiseaseDrugsPath);
             }
         }
 
@@ -628,7 +763,7 @@ namespace DSProject
             if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDrugsEffects(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects_2.txt");
+                    this.SDrugsEffectsPath);
             }
         }
 
@@ -652,7 +787,7 @@ namespace DSProject
             if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDiseases(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
+                    this.SDiseasePath);
             }
 
             watch.Stop();
@@ -677,7 +812,7 @@ namespace DSProject
             if (modifiedFlag) // Theses addresses must get from input
             {
                 this.PersistDiseasesDrugs(
-                    @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies_2.txt");
+                    this.SDiseaseDrugsPath);
             }
         }
 
@@ -715,11 +850,104 @@ namespace DSProject
                 this.DB.DrugsNames[i] = dual[0] + ": " + price;
             }
         }
+
+        public int CalcPrescription(string[] inputs)
+        {
+            this.RWL = new ReaderWriterLockSlim();
+            List<String> inputs1 = new List<string>(inputs[0..(inputs.Length/2)]);
+            List<String> inputs2 = new List<string>(inputs[(inputs.Length/2)..(inputs.Length + 1)]);
+            Thread th1 = new Thread(CalcPrescriptionHelper);
+            
+            th1.Start(inputs1);
+            int result = 0;
+
+            try
+            {
+                this.RWL.EnterReadLock();
+
+                foreach (var drug in this.DB.DrugsNames)
+                {
+                    string[] dual = drug.Split(":");
+                    dual[0] = dual[0].Trim();
+                    dual[1] = dual[1].Trim();
+                    for (int i = 0; i < inputs2.Count; i++)
+                    {
+                        if (dual[0] == inputs2[i])
+                        {
+                            result += int.Parse(dual[1]);
+                            inputs2.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+            finally
+            {
+                this.RWL.ExitReadLock();
+            }
+
+            th1.Join();
+
+            result += this.TempResult;
+            this.TempResult = 0;
+
+            return result;
+        }
+
+        private void CalcPrescriptionHelper(object inputs)
+        {
+            this.TempResult = 0;
+            List<String> inputs2 = inputs as List<String>;
+
+            try
+            {
+                this.RWL.EnterReadLock();
+                foreach (var drug in this.DB.DrugsNames)
+                {
+                    string[] dual = drug.Split(":");
+                    dual[0] = dual[0].Trim();
+                    dual[1] = dual[1].Trim();
+                    for (int i = 0; i < inputs2.Count; i++)
+                    {
+                        if (dual[0] == inputs2[i])
+                        {
+                            this.TempResult += int.Parse(dual[1]);
+                            inputs2.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+
+            }
+            finally
+            {
+                this.RWL.ExitReadLock();
+            }
+        }
     }
 
     class Program
     {
         private static DiseaseDrugDb DB;
+
+        private static MyConsole Cons;
+
+        private static void InitConsole(DiseaseDrugDb db, MyOperator op)
+        {
+            if (Program.Cons == null)
+            {
+                Cons = new MyConsole(db, op);
+            }
+        }
 
         private static void InitDb()
         {
@@ -733,6 +961,7 @@ namespace DSProject
         {
             InitDb();
             MyOperator op = new MyOperator(DB);
+            InitConsole(DB, op);
 
             //Console
             Console.ForegroundColor = ConsoleColor.Red;
@@ -778,6 +1007,10 @@ namespace DSProject
 
 
             // op.ApplyInflationRate(2);
+
+            String[] inputs = new[] {"kfroiaefi", "safdhaisfiu", "hdfasbi", "aushdfyadf"};
+            var newin = new List<String>(inputs[3..4]);
+            Console.WriteLine(newin.Count);
 
             return;
         }
