@@ -34,9 +34,9 @@ namespace DSProject
 
         bool AddDisease(string diseaseName);
 
-        String DeleteDrug(string drugName);
+        void DeleteDrug(string drugName);
 
-        String DeleteDisease(string diseaseName);
+        void DeleteDisease(string diseaseName);
 
         String DrugMalfunction(string[] drugs);
 
@@ -70,61 +70,83 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void IncreaseDrugsCost(int inflationRate)
+        public void IncreaseDrugsCost(int inflationRate) // Proxy is not tested
         {
            this.Operator.ApplyInflationRate(inflationRate);
         }
 
         /// <inheritdoc />
-        public int CalcPrescription(string[] drugs)
+        public int CalcPrescription(string[] drugs) // Proxy is not tested
         {
-            return 0;
+            return this.Operator.CalcPrescription(drugs);
         }
 
         /// <inheritdoc />
-        public string FindDrug(string drugName)
+        public string FindDrug(string drugName) // Proxy is not tested
         {
-            throw new NotImplementedException();
+            return this.Operator.FindDrugAssociated(drugName);
         }
 
         /// <inheritdoc />
-        public string FindDisease(string diseaseName)
+        public string FindDisease(string diseaseName) // Proxy is not tested
         {
-            throw new NotImplementedException();
+            return this.Operator.FindDiseaseDrugs(diseaseName);
         }
 
         /// <inheritdoc />
-        public bool AddDrug(string drugName)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public bool AddDisease(string diseaseName)
+        public bool AddDrug(string drugName)  // Proxy is not tested
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public string DeleteDrug(string drugName)
+        public bool AddDisease(string diseaseName)  // Proxy is not tested
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public string DeleteDisease(string diseaseName)
+        public void DeleteDrug(string drugName)  // Proxy is not tested
+        {
+            bool result = this.Operator.DeleteDrug(drugName);
+
+            if (result)
+            {
+                Console.WriteLine("Drug was founded & deleted !");
+                return;
+            }
+            else
+            {
+                Console.WriteLine("Drug was not founded !");
+                return;
+            }
+        }
+
+        /// Used for Deleting Disease
+        public void DeleteDisease(string diseaseName)  // Proxy is not tested
+        {
+            bool result = this.Operator.DeleteDisease(diseaseName);
+
+            if (result)
+            {
+                Console.WriteLine("Disease was found & deleted");
+                return;
+            }
+            else
+            {
+                Console.WriteLine("Disease was NOT found !");
+                return;
+            }
+        }
+
+        /// <inheritdoc />
+        public string DrugMalfunction(string[] drugs)  // Proxy is not tested
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public string DrugMalfunction(string[] drugs)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public string DiseaseMalfunction(string[] drugs)
+        public string DiseaseMalfunction(string[] drugs)  // Proxy is not tested
         {
             throw new NotImplementedException();
         }
@@ -186,8 +208,8 @@ namespace DSProject
             string drugEffects, 
             string diseasesDrugs,
             string selfDrugEffects);
-        void DeleteDrug(string name);
-        void DeleteDisease(string name);
+        bool DeleteDrug(string name);
+        bool DeleteDisease(string name);
     }
 
     // Application BD class in sync mode
@@ -267,7 +289,7 @@ namespace DSProject
         private DiseaseDrugDb DB;
 
         private String Temp;
-        private int TempResult;
+        private int TempResult; // Used in CalcPrescription Computing
         private Char[] TrimParams;
 
         private String DiseasePath;
@@ -314,7 +336,7 @@ namespace DSProject
             this.TrimParams = new[] {';', ' '};
         }
 
-        /// <inheritdoc />
+        /// It will return the actual line which contains the disease
         public string FindDiseaseDrugs(string name)
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
@@ -634,8 +656,8 @@ namespace DSProject
             this.PersistDiseasesDrugs(this.DiseaseDrugsPath);
         }
 
-        /// <inheritdoc />
-        public void DeleteDrug(string name)
+        /// Deletes specific drug from drugs.txt
+        public bool DeleteDrug(string name)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             bool modifiedFlag = false;
@@ -650,8 +672,8 @@ namespace DSProject
                 if (this.DB.DrugsNames[i].Contains(name))
                 {
                     this.DB.DrugsNames.RemoveAt(i);
-                    i -= 1;
                     modifiedFlag = true;
+                    break;
                 }
             }
 
@@ -666,8 +688,11 @@ namespace DSProject
 
             watch.Stop();
             Console.WriteLine("The time for deleting Drug : " + watch.ElapsedMilliseconds);
+
+            return modifiedFlag;
         }
 
+        /// Deletes specific drug from alergies.txt 
         private void DeleteDrugHelper(object name)
         {
             String name_ = name as string;
@@ -715,6 +740,7 @@ namespace DSProject
             }
         }
 
+        /// Delete specific drug from effects.txt
         private void YetAnotherDeleteDrugHelper(object name)
         {
             string name_ = name as string;
@@ -767,8 +793,8 @@ namespace DSProject
             }
         }
 
-        /// <inheritdoc />
-        public void DeleteDisease(string name)
+        /// Deletes specific disease from disease.txt
+        public bool DeleteDisease(string name)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             bool modifiedFlag = false;
@@ -782,18 +808,21 @@ namespace DSProject
                 this.DB.DiseaseNames.Remove(name);
             }
 
-            th.Join();
-
-            if (modifiedFlag) // Theses addresses must get from input
+            if (modifiedFlag) // These addresses should take from input
             {
                 this.PersistDiseases(
                     this.SDiseasePath);
             }
 
+            th.Join();
+
             watch.Stop();
             Console.WriteLine("The time for deleting Disease : " + watch.ElapsedMilliseconds);
+
+            return modifiedFlag;
         }
 
+        /// Deletes specific disease from alergies.txt 
         private void DeleteDiseaseHelper(object name)
         {
             String name_ = name as string;
@@ -941,6 +970,7 @@ namespace DSProject
 
         private static MyConsole Cons;
 
+        // Initialize the Console
         private static void InitConsole(DiseaseDrugDb db, MyOperator op)
         {
             if (Program.Cons == null)
@@ -949,6 +979,7 @@ namespace DSProject
             }
         }
 
+        // Initialized the DB
         private static void InitDb()
         {
             if (Program.DB == null)
