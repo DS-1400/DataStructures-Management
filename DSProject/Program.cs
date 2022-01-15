@@ -30,9 +30,9 @@ namespace DSProject
 
         String FindDisease(string diseaseName);
 
-        bool AddDrug(string drugName);
+        void AddDrug(string drugName, int drugPrice);
 
-        bool AddDisease(string diseaseName);
+        void AddDisease(string diseaseName);
 
         void DeleteDrug(string drugName);
 
@@ -94,15 +94,37 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public bool AddDrug(string drugName)  // Proxy is not tested
+        public void AddDrug(string drugName, int drugPrice)  // Proxy is not tested
         {
-            throw new NotImplementedException();
+            String input1 = drugName + " : " + drugPrice;
+            
         }
 
         /// <inheritdoc />
-        public bool AddDisease(string diseaseName)  // Proxy is not tested
+        public void AddDisease(string diseaseName)  // Proxy is not tested
         {
-            throw new NotImplementedException();
+            // Choose several drugs to associate with the disease
+            Random rand = new Random();
+            int[] idx = new int[rand.Next(1, 5)];
+
+            String output = diseaseName + " :";
+            for (int i = 0; i < idx.Length; i++)
+            {
+                idx[i] = rand.Next(0, this.Db.DrugsNames.Count);
+                output += " (" + this.Db.DrugsNames[idx[i]] + "," + (rand.Next(0, 2) == 1 ? "+" : "-") + ") ;";
+            }
+            //
+
+            bool outcome = 
+                this.Operator.CreateDisease(output.TrimEnd(this.Operator.TrimParams));
+            if (outcome)
+            {
+                Console.WriteLine("The disease was created !");
+            }
+            else
+            {
+                Console.WriteLine("The disease was NOT created !");
+            }
         }
 
         /// <inheritdoc />
@@ -203,7 +225,7 @@ namespace DSProject
     // Apply CRUD operations to MyOperator class
     interface ICrd
     {
-        void CreateDisease(string name);
+        bool CreateDisease(string name);
         void CreateDrug(string name,
             string drugEffects, 
             string diseasesDrugs,
@@ -290,7 +312,7 @@ namespace DSProject
 
         private String Temp;
         private int TempResult; // Used in CalcPrescription Computing
-        private Char[] TrimParams;
+        public Char[] TrimParams;
 
         private String DiseasePath;
         private String DiseaseDrugsPath;
@@ -537,7 +559,7 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void CreateDisease(string input) // The input should be in document format // Test is required Need handle duplicated diseases
+        public bool CreateDisease(string input) // The input should be in document format // Test is required Need handle duplicated diseases
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -563,13 +585,15 @@ namespace DSProject
             watch.Stop();
             Console.WriteLine("The time for creating a disease" +
                               " with associated drugs : " + watch.ElapsedMilliseconds);
+
+            return modifiedFlag;
         }
 
         /// <inheritdoc />
         public void CreateDrug( // test is required
-            string drugName, // drug_aa : number
+            string drugName, // drug_aa : price
             string drugsEffects, //  must be in this format   drug_aa:drug_name,drug_effect;drug_name,drug_effect
-            string diseasesDrugs, // must be in this format   drug_aa:disease_name,drug_effect;disease_name,drug_effect
+            string diseasesDrugs, // must be in this format   drug_aa:disease_name,+;disease_name,-
             string selfDrugEffects // must be in document format
             ) // Test is required
         {
