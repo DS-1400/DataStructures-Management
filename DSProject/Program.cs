@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-
 namespace DSProject
 {
     interface ILogger
@@ -48,11 +47,15 @@ namespace DSProject
 
         private DiseaseDrugDb Db;
         private MyOperator Operator;
+        private MyLogger Logger;
+        private String input2; // Input 2 Operator::CreateDrug()
+        private String input4; // Input 4 Operator::CreateDrug()
 
-        public MyConsole(DiseaseDrugDb db, MyOperator op)
+        public MyConsole(DiseaseDrugDb db, MyOperator op, MyLogger logger)
         {
             this.Db = db;
             this.Operator = op;
+            this.Logger = logger;
         }
 
         /// <inheritdoc />
@@ -96,8 +99,72 @@ namespace DSProject
         /// <inheritdoc />
         public void AddDrug(string drugName, int drugPrice)  // Proxy is not tested
         {
-            String input1 = drugName + " : " + drugPrice;
+            String input1 = drugName + " : " + drugPrice; // Input 1 Operator::CreateDrug()
+            String input3 = drugName + ":"; // Input 3 Operator::CreateDrug()
+            Thread th1 = new Thread(this.AddDrugHelper); // Produces input2 Operator::CreateDrug()
+            Thread th2 = new Thread(this.AddDrugHelper2); // Produces input4 Operator::CreateDrug()
+
+            th1.Start(drugName);
+            th2.Start(drugName);
+
+            Random rand = new Random();
+            var identifier = rand.Next(1, 5);
+            int idx = 0;
+
+            for (int i = 0; i < identifier; i++)
+            {
+                idx = rand.Next(0, this.Db.DiseaseNames.Count);
+                input3 += this.Db.DiseaseNames[idx] + "," + (rand.Next(0, 2) == 1 ? "+" : "-") + ";";
+            }
+
+            input3 = input3.TrimEnd(this.Operator.TrimParams);
+
+            th1.Join();
+            th2.Join();
             
+            this.Operator.CreateDrug(input1, this.input2, 
+                input3, this.input4);
+
+        }
+
+        private void AddDrugHelper(object drugName) // Produces input2 Operator::CreateDrug()
+        {
+            String input = drugName + ":";
+            Random rand = new Random();
+            var identifier = rand.Next(1, 3);
+            int idx = 0;
+            Char[] trimParams = new[] {'(', ')', ' '};
+
+            String tmp;
+            String[] temp;
+            for (int i = 0; i < identifier; i++)
+            {
+                idx = rand.Next(0, this.Db.DrugsEffectsNames.Count);
+                tmp = this.Db.DrugsEffectsNames[idx].Split(":")[1];
+                temp = tmp.Split(";");
+                foreach (var str in temp)
+                {
+                    input += str.Trim(trimParams) + ";";
+                }
+            }
+
+            this.input2 = input.TrimEnd(this.Operator.TrimParams);
+        }
+        
+        private void AddDrugHelper2(object drugName) // Produces input4 Operator::CreateDrug()
+        {
+            String input = drugName + " :";
+            Random rand = new Random();
+            var identifier = rand.Next(1, 4);
+            int idx = 0;
+
+            for (int i = 0; i < identifier; i++)
+            {
+                idx = rand.Next(0, this.Db.DrugsEffectsNames.Count);
+                input += this.Db.DrugsEffectsNames[idx].Split(":")[1] + " ;";
+            }
+
+            this.input4 = input.TrimEnd(this.Operator.TrimParams);
         }
 
         /// <inheritdoc />
@@ -119,11 +186,11 @@ namespace DSProject
                 this.Operator.CreateDisease(output.TrimEnd(this.Operator.TrimParams));
             if (outcome)
             {
-                Console.WriteLine("The disease was created !");
+                this.Logger.Info("The disease was created !");
             }
             else
             {
-                Console.WriteLine("The disease was NOT created !");
+                this.Logger.Warning("The disease was NOT created !");
             }
         }
 
@@ -134,12 +201,12 @@ namespace DSProject
 
             if (result)
             {
-                Console.WriteLine("Drug was founded & deleted !");
+                this.Logger.Info("Drug was founded & deleted !");
                 return;
             }
             else
             {
-                Console.WriteLine("Drug was not founded !");
+                this.Logger.Error("Drug was not founded !");
                 return;
             }
         }
@@ -151,12 +218,12 @@ namespace DSProject
 
             if (result)
             {
-                Console.WriteLine("Disease was found & deleted");
+                this.Logger.Info("Disease was found & deleted");
                 return;
             }
             else
             {
-                Console.WriteLine("Disease was NOT found !");
+                this.Logger.Warning("Disease was NOT found !");
                 return;
             }
         }
@@ -176,6 +243,10 @@ namespace DSProject
 
     class MyLogger: ILogger
     {
+        public MyLogger()
+        {
+
+        }
         public void Error(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -309,6 +380,7 @@ namespace DSProject
     class MyOperator: IFinder, IContains, IPersistence, ICrd
     {
         private DiseaseDrugDb DB;
+        private MyLogger Logger;
 
         private String Temp;
         private int TempResult; // Used in CalcPrescription Computing
@@ -326,9 +398,10 @@ namespace DSProject
 
         private ReaderWriterLockSlim RWL;
 
-        public MyOperator(DiseaseDrugDb db)
+        public MyOperator(DiseaseDrugDb db, MyLogger logger)
         {
             this.DB = db;
+            this.Logger = logger;
 
             this.DiseasePath = 
                 @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt";
@@ -387,7 +460,7 @@ namespace DSProject
             }
 
             watch10.Stop();
-            Console.WriteLine("The Time for DiseaseDrugs function : " + watch10.ElapsedMilliseconds);
+            this.Logger.Info("The Time for DiseaseDrugs function : " + watch10.ElapsedMilliseconds);
             return result.TrimEnd(this.TrimParams);
         }
 
@@ -441,7 +514,7 @@ namespace DSProject
             th.Join();
 
             watch.Stop();
-            Console.WriteLine("The Time for FindDrugsAssociation function : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The Time for FindDrugsAssociation function : " + watch.ElapsedMilliseconds);
             return result1.TrimEnd(this.TrimParams) + "\n" + this.Temp.TrimEnd(this.TrimParams) + 
                    "\n" + result2;
         }
@@ -485,8 +558,8 @@ namespace DSProject
 
             var result = this.DB.DiseaseNames.Contains(name);
 
-            watch10.Stop();
-            Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
+            watch10.Stop(); 
+            this.Logger.Info("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
             return result;
         }
 
@@ -506,7 +579,7 @@ namespace DSProject
             }
 
             watch10.Stop();
-            Console.WriteLine("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
+            this.Logger.Info("The Time for ContainsDrug function : " + watch10.ElapsedMilliseconds);
             return result;
         }
 
@@ -518,7 +591,7 @@ namespace DSProject
             File.WriteAllLines(@path, this.DB.DiseaseNames);
 
             watch.Stop();
-            Console.WriteLine("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
             return true;
         }
 
@@ -530,7 +603,7 @@ namespace DSProject
             File.WriteAllLines(@path, this.DB.DrugsNames);
 
             watch.Stop();
-            Console.WriteLine("The time for persisting Drugs : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for persisting Drugs : " + watch.ElapsedMilliseconds);
             return true;
         }
 
@@ -542,7 +615,7 @@ namespace DSProject
             File.WriteAllLines(@path, this.DB.DiseaseDrugsNames);
             
             watch.Stop();
-            Console.WriteLine("The time for persisting DiseaseDrugs : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for persisting DiseaseDrugs : " + watch.ElapsedMilliseconds);
             return true;
         }
 
@@ -554,7 +627,7 @@ namespace DSProject
             File.WriteAllLines(@path, this.DB.DrugsEffectsNames);
 
             watch.Stop();
-            Console.WriteLine("The time for persisting DrugsEffects : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for persisting DrugsEffects : " + watch.ElapsedMilliseconds);
             return true;
         }
 
@@ -583,8 +656,8 @@ namespace DSProject
             } 
 
             watch.Stop();
-            Console.WriteLine("The time for creating a disease" +
-                              " with associated drugs : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for creating a disease" +
+                             " with associated drugs : " + watch.ElapsedMilliseconds);
 
             return modifiedFlag;
         }
@@ -600,7 +673,7 @@ namespace DSProject
 
             if (this.DB.DrugsNames.Contains(drugName))
             {
-                Console.WriteLine("The drug is repetitious");
+                this.Logger.Error("The drug is repetitious");
                 return;
             }
 
@@ -677,6 +750,13 @@ namespace DSProject
                 }
             }
 
+            if (diseaseEffects.Count > 0)
+            {
+                foreach (var kv in diseaseEffects)
+                {
+                    this.DB.DiseaseDrugsNames.Add(kv.Key + " : " + "(" + dual[0] + "," + kv.Value + ")");
+                }
+            }
             this.PersistDiseasesDrugs(this.DiseaseDrugsPath);
         }
 
@@ -711,7 +791,7 @@ namespace DSProject
             th2.Join();
 
             watch.Stop();
-            Console.WriteLine("The time for deleting Drug : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for deleting Drug : " + watch.ElapsedMilliseconds);
 
             return modifiedFlag;
         }
@@ -841,7 +921,7 @@ namespace DSProject
             th.Join();
 
             watch.Stop();
-            Console.WriteLine("The time for deleting Disease : " + watch.ElapsedMilliseconds);
+            this.Logger.Info("The time for deleting Disease : " + watch.ElapsedMilliseconds);
 
             return modifiedFlag;
         }
@@ -995,11 +1075,11 @@ namespace DSProject
         private static MyConsole Cons;
 
         // Initialize the Console
-        private static void InitConsole(DiseaseDrugDb db, MyOperator op)
+        private static void InitConsole(DiseaseDrugDb db, MyOperator op, MyLogger logger)
         {
             if (Program.Cons == null)
             {
-                Cons = new MyConsole(db, op);
+                Cons = new MyConsole(db, op, logger);
             }
         }
 
@@ -1012,11 +1092,13 @@ namespace DSProject
             }
         }
 
+        
         static void Main(string[] args)
         {
+            MyLogger logger = new MyLogger();
             InitDb();
-            MyOperator op = new MyOperator(DB);
-            InitConsole(DB, op);
+            MyOperator op = new MyOperator(DB, logger);
+            InitConsole(DB, op, logger);
 
             //Console
             Console.ForegroundColor = ConsoleColor.Red;
@@ -1063,9 +1145,9 @@ namespace DSProject
 
             // op.ApplyInflationRate(2);
 
-            String[] inputs = new[] {"kfroiaefi", "safdhaisfiu", "hdfasbi", "aushdfyadf"};
-            var newin = new List<String>(inputs[3..4]);
-            Console.WriteLine(newin.Count);
+            // String[] inputs = new[] {"kfroiaefi", "safdhaisfiu", "hdfasbi", "aushdfyadf"};
+            // var newin = new List<String>(inputs[3..4]);
+            // Console.WriteLine(newin.Count);
 
             return;
         }
