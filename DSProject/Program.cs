@@ -5,11 +5,53 @@ using System.Threading;
 
 namespace DSProject
 {
+    // include two functions to checking existence of diseases & drugs
+    interface IContains
+    {
+        bool ContainsDisease(String name);
+        bool ContainsDrug(String name);
+    }
+
+    // Find the drugs which are associated with a specific disease
+    // Find the drugs & diseases which are associated with a another drug
+    interface IFinder
+    {
+        String FindDiseaseDrugs(String name);
+        String FindDrugAssociated(String name);
+    }
+
+    // Using for persisting our data about drugs & diseases
+    interface IPersistence
+    {
+        bool PersistDiseases(string path);
+        bool PersistDrugs(string path);
+        bool PersistDiseasesDrugs(string path);
+        bool PersistDrugsEffects(string path);
+    }
+
+    // Apply CRUD operations to MyOperator class
+    interface ICrd
+    {
+        bool CreateDisease(string name);
+        void CreateDrug(string name,
+            string drugEffects,
+            string diseasesDrugs,
+            string selfDrugEffects);
+        bool DeleteDrug(string name);
+        bool DeleteDisease(string name);
+    }
+
     interface ILogger
     { 
         void Error(string message);
         void Warning(string message);
         void Info(string message);
+    }
+
+    interface IMalfunction
+    {
+        String DiseaseMalfunction(string diseaseName, string[] drugs);
+        String DrugMalfunction(string[] drugs);
     }
 
     // Required functions that should be implemented
@@ -269,42 +311,6 @@ namespace DSProject
         }
     }
 
-    // include two functions for checking existence of diseases & drugs
-    interface IContains
-    {
-        bool ContainsDisease(String name);
-        bool ContainsDrug(String name);
-    }
-
-    // Find the drugs which are associated with a specific disease
-    // Find the drugs & diseases which are associated with a another drug
-    interface IFinder
-    {
-        String FindDiseaseDrugs(String name);
-        String FindDrugAssociated(String name);
-    }
-
-    // Using for persisting our data about drugs & diseases
-    interface IPersistence
-    {
-        bool PersistDiseases(string path);
-        bool PersistDrugs(string path);
-        bool PersistDiseasesDrugs(string path);
-        bool PersistDrugsEffects(string path);
-    }
-
-    // Apply CRUD operations to MyOperator class
-    interface ICrd
-    {
-        bool CreateDisease(string name);
-        void CreateDrug(string name,
-            string drugEffects, 
-            string diseasesDrugs,
-            string selfDrugEffects);
-        bool DeleteDrug(string name);
-        bool DeleteDisease(string name);
-    }
-
     // Application BD class in sync mode
     class DiseaseDrugDb
     {
@@ -377,7 +383,7 @@ namespace DSProject
     }
 
     // Do all of fundamental operations for us
-    class MyOperator: IFinder, IContains, IPersistence, ICrd
+    class MyOperator: IFinder, IContains, IPersistence, ICrd, IMalfunction
     {
         private DiseaseDrugDb DB;
         private MyLogger Logger;
@@ -988,7 +994,7 @@ namespace DSProject
         {
             this.RWL = new ReaderWriterLockSlim();
             List<String> inputs1 = new List<string>(inputs[0..(inputs.Length/2)]);
-            List<String> inputs2 = new List<string>(inputs[(inputs.Length/2)..(inputs.Length + 1)]);
+            List<String> inputs2 = new List<string>(inputs[(inputs.Length/2)..(inputs.Length)]);
             Thread th1 = new Thread(CalcPrescriptionHelper);
             
             th1.Start(inputs1);
@@ -1065,6 +1071,79 @@ namespace DSProject
             {
                 this.RWL.ExitReadLock();
             }
+        }
+
+        /// <inheritdoc />
+        public string DiseaseMalfunction(string diseaseName, string[] drugs) // Test is required
+        {
+            String result = diseaseName + " :";
+            foreach (var disease in this.DB.DiseaseDrugsNames)
+            {
+                if (disease.Contains(diseaseName))
+                {
+                    String drugss = disease.Split(":")[1];
+                    String[] splitedDrugs = drugss.Split(";");
+
+                    for (int i = 0; i < drugs.Length; i++)
+                    {
+                        if (drugss.Contains(drugs[i]))
+                        {
+                            for (int j = 0; j < splitedDrugs.Length; j++)
+                            {
+                                if (splitedDrugs[j].Contains(drugs[i]))
+                                {
+                                    result += splitedDrugs[j] + ";";
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            return result.TrimEnd(this.TrimParams);
+        }
+
+        /// <inheritdoc />
+        public string DrugMalfunction(string[] drugs) // Test is required
+        {
+            String result = "";
+            String[] dual;
+            String[] after;
+
+            foreach (var drugEffects in this.DB.DrugsEffectsNames)
+            {
+                dual = drugEffects.Split(":");
+                after = drugEffects.Split(";");
+                for (int i = 0; i < drugs.Length; i++)
+                {
+                    if (dual[0].Contains(drugs[i]))
+                    {
+                        String tmpResult = dual[0] + " :";
+                        for (int j = 0; j < drugs.Length; j++)
+                        {
+                            if (dual[1].Contains(drugs[j]))
+                            {
+                                for (int k = 0; k < after.Length; k++)
+                                {
+                                    if (after[k].Contains(drugs[j]))
+                                    {
+                                        tmpResult += after[k] + ";";
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        result += tmpResult + "\n";
+                        break;
+                    }
+                }
+            }
+
+            return result;
         }
     }
 
