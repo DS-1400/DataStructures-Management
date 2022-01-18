@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading;
+using Microsoft.VisualBasic;
 
 namespace DSProject
 {
@@ -57,31 +59,25 @@ namespace DSProject
     // Required functions that should be implemented
     interface IConsole
     {
-        void ReadFiles();
+        void IncreaseDrugsCost();
 
-        void ReadFiles(string drugsPath,
-            string diseasesPath, string drugsEffectsPath,
-            string diseasesDrugsPath);
+        void CalcPrescription();
 
-        void IncreaseDrugsCost(int inflationRate);
+        void FindDrug();
 
-        int CalcPrescription(string[] drugs);
+        void FindDisease();
 
-        String FindDrug(string drugName);
+        void AddDrug();
 
-        String FindDisease(string diseaseName);
+        void AddDisease();
 
-        void AddDrug(string drugName, int drugPrice);
+        void DeleteDrug();
 
-        void AddDisease(string diseaseName);
+        void DeleteDisease();
 
-        void DeleteDrug(string drugName);
+        void DrugMalfunction();
 
-        void DeleteDisease(string diseaseName);
-
-        String DrugMalfunction(string[] drugs);
-
-        String DiseaseMalfunction(string[] drugs);
+        void DiseaseMalfunction();
     }
 
     class MyConsole: IConsole
@@ -101,46 +97,82 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void ReadFiles()
+       
+        /// <inheritdoc />
+        public void IncreaseDrugsCost() // Proxy is not tested
         {
-            throw new NotImplementedException();
+            this.Logger.Message("Please Enter the inflation rate : ");
+            var input = Console.ReadLine();
+            if (input == "")
+            {
+                this.Logger.Warning("You have Entered nothing !");
+                input = "1";
+            }
+
+            int inflationRate = 1;
+            if (int.TryParse(input, out inflationRate))
+            {
+                this.Operator.ApplyInflationRate(inflationRate);
+                this.Logger.Message("Inflation Rate has applied.");
+            }
+            else
+            {
+                this.Logger.Error("Your input was not a number !");
+                return;
+            }
+
         }
 
         /// <inheritdoc />
-        public void ReadFiles(string drugsPath, 
-            string diseasesPath, string drugsEffectsPath, 
-            string diseasesDrugsPath)
+        public void CalcPrescription() // Proxy is not tested
         {
-            throw new NotImplementedException();
+            this.Logger.Message("Please enter the drugs, separate them with comma without any space :");
+            var result = Console.ReadLine(); 
+            
+            var outcome = this.Operator.CalcPrescription(result.Trim().Split(","));
+            this.Logger.Message("The result of Calculation is " + outcome);
         }
 
         /// <inheritdoc />
-        public void IncreaseDrugsCost(int inflationRate) // Proxy is not tested
+        public void FindDrug() // Proxy is not tested
         {
-           this.Operator.ApplyInflationRate(inflationRate);
+            this.Logger.Message("Enter the drug name :");
+            var drugName = Console.ReadLine();
+
+            var result = this.Operator.FindDrugAssociated(drugName);
+            this.Logger.Message(result);
         }
 
         /// <inheritdoc />
-        public int CalcPrescription(string[] drugs) // Proxy is not tested
+        public void FindDisease() // Proxy is not tested
         {
-            return this.Operator.CalcPrescription(drugs);
+            this.Logger.Message("Enter the disease name : ");
+            var diseaseName = Console.ReadLine();
+
+            var result = this.Operator.FindDiseaseDrugs(diseaseName);
+            this.Logger.Message(result);
         }
 
         /// <inheritdoc />
-        public string FindDrug(string drugName) // Proxy is not tested
+        public void AddDrug()  // Proxy is not tested
         {
-            return this.Operator.FindDrugAssociated(drugName);
-        }
+            this.Logger.Message("Enter the drug name : ");
+            var drugName = Console.ReadLine();
 
-        /// <inheritdoc />
-        public string FindDisease(string diseaseName) // Proxy is not tested
-        {
-            return this.Operator.FindDiseaseDrugs(diseaseName);
-        }
+            this.Logger.Message("Enter the drug price :");
+            var drugPriceStr = Console.ReadLine();
 
-        /// <inheritdoc />
-        public void AddDrug(string drugName, int drugPrice)  // Proxy is not tested
-        {
+            int drugPrice = 1;
+            if (int.TryParse(drugPriceStr, out drugPrice))
+            {
+                drugPrice = int.Parse(drugPriceStr);
+            }
+            else
+            {
+                this.Logger.Error("You have entered wrong input");
+                return;
+            }
+
             String input1 = drugName + " : " + drugPrice; // Input 1 Operator::CreateDrug()
             String input3 = drugName + ":"; // Input 3 Operator::CreateDrug()
             Thread th1 = new Thread(this.AddDrugHelper); // Produces input2 Operator::CreateDrug()
@@ -166,6 +198,8 @@ namespace DSProject
             
             this.Operator.CreateDrug(input1, this.input2, 
                 input3, this.input4);
+
+            this.Logger.Message("Drug was created");
 
         }
 
@@ -210,8 +244,11 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void AddDisease(string diseaseName)  // Proxy is not tested
+        public void AddDisease()  // Proxy is not tested
         {
+            this.Logger.Message("Please enter the disease name : ");
+            var diseaseName = Console.ReadLine();
+
             // Choose several drugs to associate with the disease
             Random rand = new Random();
             int[] idx = new int[rand.Next(1, 5)];
@@ -237,25 +274,30 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public void DeleteDrug(string drugName)  // Proxy is not tested
+        public void DeleteDrug()  // Proxy is not tested
         {
+            this.Logger.Message("Please enter the drug name : ");
+            var drugName = Console.ReadLine();
+
             bool result = this.Operator.DeleteDrug(drugName);
 
             if (result)
             {
-                this.Logger.Info("Drug was founded & deleted !");
+                this.Logger.Message("Drug was founded & deleted !");
                 return;
             }
             else
             {
-                this.Logger.Error("Drug was not founded !");
+                this.Logger.Message("Drug was not founded !");
                 return;
             }
         }
 
         /// Used for Deleting Disease
-        public void DeleteDisease(string diseaseName)  // Proxy is not tested
+        public void DeleteDisease()  // Proxy is not tested
         {
+            this.Logger.Message("Please enter the disease name : ");
+            var diseaseName = Console.ReadLine();
             bool result = this.Operator.DeleteDisease(diseaseName);
 
             if (result)
@@ -271,15 +313,27 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public string DrugMalfunction(string[] drugs)  // Proxy is not tested
+        public void DrugMalfunction()  // Proxy is not tested
         {
-            throw new NotImplementedException();
+            this.Logger.Message("Please enter the drug names , separate them with comma :");
+
+            var drugs = Console.ReadLine();
+            var result = this.Operator.DrugMalfunction(drugs.Trim().Split(","));
+
+            this.Logger.Message(result);
         }
 
         /// <inheritdoc />
-        public string DiseaseMalfunction(string[] drugs)  // Proxy is not tested
+        public void DiseaseMalfunction()  // Proxy is not tested
         {
-            throw new NotImplementedException();
+            this.Logger.Message("Enter the disease name : ");
+            var diseaseName = Console.ReadLine();
+            
+            this.Logger.Message("Enter the drug names , separate them with comma : ");
+            var drugs = Console.ReadLine();
+           
+            var result = this.Operator.DiseaseMalfunction(diseaseName, drugs.Trim().Split(","));
+            this.Logger.Message(result);
         }
     }
 
@@ -289,6 +343,14 @@ namespace DSProject
         {
 
         }
+
+        public void Message(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
         public void Error(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -305,7 +367,7 @@ namespace DSProject
 
         public void Info(string message)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine("INFO : " + message);
             Console.ResetColor();
         }
@@ -321,7 +383,7 @@ namespace DSProject
 
         public DiseaseDrugDb() // 170 Milliseconds for first time 
         {
-            var watch10 = System.Diagnostics.Stopwatch.StartNew();
+           // var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
             this.DiseaseNames =
                 new List<string>(
@@ -343,8 +405,8 @@ namespace DSProject
                     File.ReadAllLines(
                         @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt"));
 
-            watch10.Stop();
-            Console.WriteLine("The fucking time of Reading all files : " + watch10.ElapsedMilliseconds);
+            //watch10.Stop();
+            //Console.WriteLine("The fucking time of Reading all files : " + watch10.ElapsedMilliseconds);
         }
     }
 
@@ -438,7 +500,7 @@ namespace DSProject
         }
 
         /// It will return the actual line which contains the disease
-        public string FindDiseaseDrugs(string name)
+        public string FindDiseaseDrugs(string name) // 18 Milliseconds
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
@@ -472,7 +534,7 @@ namespace DSProject
 
         // It will print three lines first for diseases, third for drugs have effects on target,
         // second for target has effects on other drugs
-        public string FindDrugAssociated(string name)
+        public string FindDrugAssociated(string name) // 69 51 31 Milliseconds
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -558,7 +620,7 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public bool ContainsDisease(string name)
+        public bool ContainsDisease(string name) // 7 Milliseconds
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
@@ -570,7 +632,7 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public bool ContainsDrug(string name)
+        public bool ContainsDrug(string name) // 0 Milliseconds
         {
             var watch10 = System.Diagnostics.Stopwatch.StartNew();
 
@@ -592,48 +654,31 @@ namespace DSProject
         /// <inheritdoc />
         public bool PersistDiseases(string path)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             File.WriteAllLines(@path, this.DB.DiseaseNames);
-
-            watch.Stop();
-            this.Logger.Info("The time for persisting Diseases : " + watch.ElapsedMilliseconds);
             return true;
         }
 
         /// <inheritdoc />
         public bool PersistDrugs(string path)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             File.WriteAllLines(@path, this.DB.DrugsNames);
 
-            watch.Stop();
-            this.Logger.Info("The time for persisting Drugs : " + watch.ElapsedMilliseconds);
             return true;
         }
 
         /// <inheritdoc />
         public bool PersistDiseasesDrugs(string path)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            
             File.WriteAllLines(@path, this.DB.DiseaseDrugsNames);
             
-            watch.Stop();
-            this.Logger.Info("The time for persisting DiseaseDrugs : " + watch.ElapsedMilliseconds);
             return true;
         }
 
         /// <inheritdoc />
         public bool PersistDrugsEffects(string path)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             File.WriteAllLines(@path, this.DB.DrugsEffectsNames);
 
-            watch.Stop();
-            this.Logger.Info("The time for persisting DrugsEffects : " + watch.ElapsedMilliseconds);
             return true;
         }
 
@@ -907,6 +952,7 @@ namespace DSProject
         public bool DeleteDisease(string name)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
+
             bool modifiedFlag = false;
             Thread th = new Thread(this.DeleteDiseaseHelper);
 
@@ -955,8 +1001,10 @@ namespace DSProject
             }
         }
 
-        public void ApplyInflationRate(int infRate)
+        public void ApplyInflationRate(int infRate) // 170 Milliseconds
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             Thread th1 = new Thread(this.ApplyInflationRateHelper);
             th1.Start(infRate);
 
@@ -972,6 +1020,9 @@ namespace DSProject
 
             th1.Join();
             this.PersistDrugs(this.DrugsPath);
+
+            watch.Stop();
+            this.Logger.Info("The time to Apply Inflation Rate : " + watch.ElapsedMilliseconds);
         }
 
         private void ApplyInflationRateHelper(object input)
@@ -990,8 +1041,10 @@ namespace DSProject
             }
         }
 
-        public int CalcPrescription(string[] inputs)
+        public int CalcPrescription(string[] inputs) // Test is required, a little bug was founded
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             this.RWL = new ReaderWriterLockSlim();
             List<String> inputs1 = new List<string>(inputs[0..(inputs.Length/2)]);
             List<String> inputs2 = new List<string>(inputs[(inputs.Length/2)..(inputs.Length)]);
@@ -1035,6 +1088,9 @@ namespace DSProject
             result += this.TempResult;
             this.TempResult = 0;
 
+            watch.Stop();
+            this.Logger.Info("The time for Prescription Calculation : " + watch.ElapsedMilliseconds);
+
             return result;
         }
 
@@ -1074,8 +1130,9 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-        public string DiseaseMalfunction(string diseaseName, string[] drugs) // Test is required
+        public string DiseaseMalfunction(string diseaseName, string[] drugs) // 2 Milliseconds
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             String result = diseaseName + " :";
             foreach (var disease in this.DB.DiseaseDrugsNames)
             {
@@ -1103,12 +1160,15 @@ namespace DSProject
                 }
             }
 
+            watch.Stop();
+            this.Logger.Info("The time for DiseaseMalfunction : " + watch.ElapsedMilliseconds);
             return result.TrimEnd(this.TrimParams);
         }
 
         /// <inheritdoc />
-        public string DrugMalfunction(string[] drugs) // Test is required
+        public string DrugMalfunction(string[] drugs)
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             String result = "";
             String[] dual;
             String[] after;
@@ -1143,6 +1203,8 @@ namespace DSProject
                 }
             }
 
+            watch.Stop();
+            this.Logger.Info("The time for diseaseMalfunction : " + watch.ElapsedMilliseconds);
             return result;
         }
     }
@@ -1152,6 +1214,8 @@ namespace DSProject
         private static DiseaseDrugDb DB;
 
         private static MyConsole Cons;
+
+        private static MyLogger Logg;
 
         // Initialize the Console
         private static void InitConsole(DiseaseDrugDb db, MyOperator op, MyLogger logger)
@@ -1171,36 +1235,71 @@ namespace DSProject
             }
         }
 
-        
+        private static void Panel()
+        {
+            String panel = "1.Init DB (1)\n2.Find specific drug (2)\n";
+            panel += "3.Find specific disease (3)\n4.Apply inflation rate (4)\n";
+            panel += "5.Calculate Prescription (5)\n6.Create drug (6)\n";
+            panel += "7.Create disease (7)\n8.Drug malfunction detection (8)\n";
+            panel += "9.Disease malfunction detection (9)\n10.Delete drug (10)\n";
+            panel += "11.Delete disease (11)\n0.Exit\n";
+            panel += "Enter the number : ";
+
+            while (true)
+            {
+                Console.WriteLine(panel);
+                var input = Console.ReadLine();
+
+                if (input == "1")
+                {
+                    Console.Clear();
+                    InitDb();
+                    Logg.Info("DB was initialized");
+                    Console.ReadLine();
+                    Console.Clear();
+                }
+                else if (input == "0")
+                {
+                    Console.Clear();
+                    Logg.Message("Exit ...");
+                    return;
+                }
+                else
+                {
+                    Logg.Error("you have entered wrong input");
+                    Console.Clear();
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
+            // Initialization 153 Milliseconds
             MyLogger logger = new MyLogger();
+            Logg = logger;
             InitDb();
             MyOperator op = new MyOperator(DB, logger);
             InitConsole(DB, op, logger);
 
+            // Initialization
+
             //Console
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("hello enter something :");
-            Console.ResetColor();
-            Console.WriteLine("Just for manipulation");
-            Console.ReadLine();
+            
+            Panel();
+
             //Console
 
-            // Console.WriteLine(op.ContainsDisease("Dis_xmbjdyijco"));
+            //Console.WriteLine(op.ContainsDisease("Dis_xmbjdyijco"));
 
-            // Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
+            //Console.WriteLine(op.ContainsDrug("Drug_hvtiayzegc"));
 
-            // Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
+            //Console.WriteLine(op.FindDiseaseDrugs("Dis_lbqblqdzoo"));
 
             // Console.WriteLine(op.FindDrugAssociated("Drug_vfsskclbhk"));
             // Console.WriteLine(op.FindDrugAssociated("Drug_vobddjeuyu"));
             // Console.WriteLine(op.FindDrugAssociated("Drug_mlsvozghuj"));
 
             // op.PersistDiseases(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases_2.txt");
-
-            // op.DeleteDrug("Drug_ugqzkbyrrr");
-            // op.PersistDrugs(@"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs_2.txt");
 
             // op.DeleteDisease("Dis_xmbjdyijco"); // Test the diseases.txt look at end of file
             // op.DeleteDisease("Dis_lbqblqdzoo"); // Test the alergies.txt look at end of file
@@ -1224,9 +1323,28 @@ namespace DSProject
 
             // op.ApplyInflationRate(2);
 
+            // var resultCalcaCalcPrescription = op.CalcPrescription(new[]
+            // {
+            //     "Drug_ucxnqwcpsf",
+            //     "Drug_buprxehepe",
+            //     "Drug_hvtiayzegc",
+            //     "Drug_vhlwunmpuu",
+            // });
+            // Console.WriteLine("The result CalcPrescription : " + resultCalcaCalcPrescription);
+
             // String[] inputs = new[] {"kfroiaefi", "safdhaisfiu", "hdfasbi", "aushdfyadf"};
             // var newin = new List<String>(inputs[3..4]);
             // Console.WriteLine(newin.Count);
+
+            // var result = op.DiseaseMalfunction("Dis_mvkepinytj", new[]
+            // {
+            //     "Drug_wuynwadycl",
+            //     "Drug_qclktzzkyi",
+            //     "Drug_qoyexsylpd1",
+            //     "Drug_jmjobqnovn",
+            // });
+            // Console.WriteLine(result);
+
 
             return;
         }
