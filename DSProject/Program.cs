@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading;
-using Microsoft.VisualBasic;
 
 namespace DSProject
 {
@@ -283,12 +281,12 @@ namespace DSProject
 
             if (result)
             {
-                this.Logger.Message("Drug was founded & deleted !");
+                this.Logger.Info("Drug was founded & deleted !");
                 return;
             }
             else
             {
-                this.Logger.Message("Drug was not founded !");
+                this.Logger.Info("Drug was not founded !");
                 return;
             }
         }
@@ -383,30 +381,25 @@ namespace DSProject
 
         public DiseaseDrugDb() // 170 Milliseconds for first time 
         {
-           // var watch10 = System.Diagnostics.Stopwatch.StartNew();
-
             this.DiseaseNames =
-                new List<string>(
-                    File.ReadAllLines(
-                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt"));
+               new List<string>(
+                   File.ReadAllLines(
+                       @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\diseases.txt"));
 
-            this.DrugsNames =
-                new List<string>(
-                    File.ReadAllLines(
-                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt"));
+           this.DiseaseDrugsNames =
+               new List<string>(
+                   File.ReadAllLines(
+                       @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt"));
 
-            this.DiseaseDrugsNames =
-                new List<string>(
-                    File.ReadAllLines(
-                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\alergies.txt"));
+           this.DrugsNames =
+               new List<string>(
+                   File.ReadAllLines(
+                       @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\drugs.txt"));
 
-            this.DrugsEffectsNames =
-                new List<string>(
-                    File.ReadAllLines(
-                        @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt"));
-
-            //watch10.Stop();
-            //Console.WriteLine("The fucking time of Reading all files : " + watch10.ElapsedMilliseconds);
+           this.DrugsEffectsNames =
+               new List<string>(
+                   File.ReadAllLines(
+                       @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\effects.txt"));
         }
     }
 
@@ -1217,6 +1210,8 @@ namespace DSProject
 
         private static MyLogger Logg;
 
+        private static MyOperator Op;
+
         // Initialize the Console
         private static void InitConsole(DiseaseDrugDb db, MyOperator op, MyLogger logger)
         {
@@ -1229,14 +1224,19 @@ namespace DSProject
         // Initialized the DB
         private static void InitDb()
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             if (Program.DB == null)
             {
                 DB = new DiseaseDrugDb();
             }
+
+            watch.Stop();
+            Logg.Info("The time for Initialization of DB is " + watch.ElapsedMilliseconds);
         }
 
         private static void Panel()
-        {
+        { 
             String panel = "1.Init DB (1)\n2.Find specific drug (2)\n";
             panel += "3.Find specific disease (3)\n4.Apply inflation rate (4)\n";
             panel += "5.Calculate Prescription (5)\n6.Create drug (6)\n";
@@ -1246,14 +1246,20 @@ namespace DSProject
             panel += "Enter the number : ";
 
             while (true)
-            {
-                Console.WriteLine(panel);
+            { 
+                Logg.Message(panel);
                 var input = Console.ReadLine();
 
                 if (input == "1")
                 {
                     Console.Clear();
+
+                    MyLogger logger = new MyLogger();
+                    Logg = logger;
                     InitDb();
+                    Op = new MyOperator(DB, Logg);
+                    InitConsole(DB, Op, Logg);
+
                     Logg.Info("DB was initialized");
                     Console.ReadLine();
                     Console.Clear();
@@ -1261,12 +1267,65 @@ namespace DSProject
                 else if (input == "0")
                 {
                     Console.Clear();
-                    Logg.Message("Exit ...");
+                    Logg.Info("Exit ...");
                     return;
+                } else if (input == "2")
+                {
+                    Console.Clear();
+                    Cons.FindDrug();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "3")
+                {
+                    Console.Clear();
+                    Cons.FindDisease();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "4")
+                {
+                    Console.Clear();
+                    Cons.IncreaseDrugsCost();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if(input == "5")
+                {
+                    Console.Clear();
+                    Cons.CalcPrescription();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "6")
+                {
+                    Console.Clear();
+                    Cons.AddDrug();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "7")
+                {
+                    Console.Clear();
+                    Cons.AddDisease();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "9")
+                {
+                    Console.Clear();
+                    Cons.DiseaseMalfunction();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "10")
+                {
+                    Console.Clear();
+                    Cons.DeleteDrug();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "11")
+                {
+                    Console.Clear();
+                    Cons.DeleteDisease();
+                    Console.ReadKey();
+                    Console.Clear();
                 }
                 else
-                {
-                    Logg.Error("you have entered wrong input");
+                { 
                     Console.Clear();
                 }
             }
@@ -1277,9 +1336,9 @@ namespace DSProject
             // Initialization 153 Milliseconds
             MyLogger logger = new MyLogger();
             Logg = logger;
-            InitDb();
-            MyOperator op = new MyOperator(DB, logger);
-            InitConsole(DB, op, logger);
+            // InitDb();
+            // Op = new MyOperator(DB, logger);
+            // InitConsole(DB, Op, logger);
 
             // Initialization
 
