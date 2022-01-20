@@ -337,23 +337,28 @@ namespace DSProject
 
     class MyLogger: ILogger
     {
+        private String LogPath;
+
         public MyLogger()
         {
-
+            this.LogPath = @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\project_logs_ds.txt";
         }
 
+        
         public void Message(string message)
-        {
+        { 
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine(message);
             Console.ResetColor();
+            File.AppendAllText(this.LogPath, message + "\n");
         }
 
         public void Error(string message)
-        {
+        { 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("ERROR : " + message);
             Console.ResetColor();
+            File.AppendAllText(this.LogPath, "ERROR : " + message + "\n");
         }
 
         public void Warning(string message)
@@ -361,6 +366,7 @@ namespace DSProject
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Warning : " + message);
             Console.ResetColor();
+            File.AppendAllText(this.LogPath, "WARNING : " + message + "\n");
         }
 
         public void Info(string message)
@@ -368,6 +374,7 @@ namespace DSProject
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine("INFO : " + message);
             Console.ResetColor();
+            File.AppendAllText(this.LogPath, "INFO : " + message + "\n");
         }
     }
 
@@ -1140,7 +1147,7 @@ namespace DSProject
                         {
                             for (int j = 0; j < splitedDrugs.Length; j++)
                             {
-                                if (splitedDrugs[j].Contains(drugs[i]))
+                                if (splitedDrugs[j].Contains(drugs[i]) && splitedDrugs[j].Contains("-"))
                                 {
                                     result += splitedDrugs[j] + ";";
                                     break;
@@ -1169,12 +1176,12 @@ namespace DSProject
             foreach (var drugEffects in this.DB.DrugsEffectsNames)
             {
                 dual = drugEffects.Split(":");
-                after = drugEffects.Split(";");
+                after = dual[1].Split(";");
                 for (int i = 0; i < drugs.Length; i++)
                 {
                     if (dual[0].Contains(drugs[i]))
                     {
-                        String tmpResult = dual[0] + " :";
+                        String tmpResult = dual[0] + ":";
                         for (int j = 0; j < drugs.Length; j++)
                         {
                             if (dual[1].Contains(drugs[j]))
@@ -1190,7 +1197,7 @@ namespace DSProject
                             }
                         }
 
-                        result += tmpResult + "\n";
+                        result += tmpResult.TrimEnd(this.TrimParams) + "\n";
                         break;
                     }
                 }
@@ -1247,7 +1254,7 @@ namespace DSProject
 
             while (true)
             { 
-                Logg.Message(panel);
+                Console.WriteLine(panel);
                 var input = Console.ReadLine();
 
                 if (input == "1")
@@ -1305,7 +1312,14 @@ namespace DSProject
                     Cons.AddDisease();
                     Console.ReadKey();
                     Console.Clear();
-                } else if (input == "9")
+                } else if (input == "8")
+                {
+                    Console.Clear();
+                    Cons.DrugMalfunction();
+                    Console.ReadKey();
+                    Console.Clear();
+                } 
+                else if (input == "9")
                 {
                     Console.Clear();
                     Cons.DiseaseMalfunction();
@@ -1344,7 +1358,7 @@ namespace DSProject
 
             //Console
             
-            Panel();
+            Panel(); // TODO this is the panel, so important
 
             //Console
 
@@ -1395,15 +1409,24 @@ namespace DSProject
             // var newin = new List<String>(inputs[3..4]);
             // Console.WriteLine(newin.Count);
 
-            // var result = op.DiseaseMalfunction("Dis_mvkepinytj", new[]
+            // var result = Op.DiseaseMalfunction("Dis_mvkepinytj", new[]
             // {
             //     "Drug_wuynwadycl",
             //     "Drug_qclktzzkyi",
-            //     "Drug_qoyexsylpd1",
+            //     "Drug_qoyexsylpd",
             //     "Drug_jmjobqnovn",
             // });
             // Console.WriteLine(result);
 
+            // var result = Op.DrugMalfunction(new[]
+            // {
+            //     "Drug_mlsvozghuj",
+            //     "Drug_mtystjzxzf",
+            //     "Drug_fqjiihjvbp",
+            //     "Drug_igqkzmfllx",
+            //     "Drug_iazfuwyaan",
+            // });
+            // Console.WriteLine(result);
 
             return;
         }
