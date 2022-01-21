@@ -95,8 +95,6 @@ namespace DSProject
         }
 
         /// <inheritdoc />
-       
-        /// <inheritdoc />
         public void IncreaseDrugsCost() // Proxy is not tested
         {
             this.Logger.Message("Please Enter the inflation rate : ");
@@ -111,7 +109,7 @@ namespace DSProject
             if (int.TryParse(input, out inflationRate))
             {
                 this.Operator.ApplyInflationRate(inflationRate);
-                this.Logger.Message("Inflation Rate has applied.");
+                this.Logger.Info("Inflation Rate has applied.");
             }
             else
             {
@@ -128,6 +126,15 @@ namespace DSProject
             var result = Console.ReadLine(); 
             
             var outcome = this.Operator.CalcPrescription(result.Trim().Split(","));
+            this.Logger.Message("The result of Calculation is " + outcome);
+        }
+
+        public void CalcPrescriptionReplacement()
+        {
+            this.Logger.Message("Please enter the drugs, separate them with comma without any space :");
+            var result = Console.ReadLine();
+
+            var outcome = this.Operator.CalcPrescriptionReplacement(result.Trim().Split(","));
             this.Logger.Message("The result of Calculation is " + outcome);
         }
 
@@ -167,7 +174,7 @@ namespace DSProject
             }
             else
             {
-                this.Logger.Error("You have entered wrong input");
+                this.Logger.Error("You have entered wrong input to specify the price");
                 return;
             }
 
@@ -342,6 +349,7 @@ namespace DSProject
         public MyLogger()
         {
             this.LogPath = @"C:\Users\Asus\Desktop\DS-Final-Project\DS-Final-Project\datasets\project_logs_ds.txt";
+            File.Delete(this.LogPath);
         }
 
         
@@ -1129,6 +1137,34 @@ namespace DSProject
             }
         }
 
+        public int CalcPrescriptionReplacement(string[] inputs)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            List<string> inputs2 = new List<string>(inputs);
+            int result = 0;
+
+            foreach (var drug in this.DB.DrugsNames)
+            {
+                string[] dual = drug.Split(":");
+                dual[0] = dual[0].Trim();
+                dual[1] = dual[1].Trim();
+                for (int i = 0; i < inputs2.Count; i++)
+                {
+                    if (dual[0] == inputs2[i])
+                    {
+                        result += int.Parse(dual[1]);
+                        inputs2.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            watch.Stop();
+            this.Logger.Info("The time for Prescription Calculation : " + watch.ElapsedMilliseconds);
+            return result;
+        }
+
         /// <inheritdoc />
         public string DiseaseMalfunction(string diseaseName, string[] drugs) // 2 Milliseconds
         {
@@ -1249,20 +1285,26 @@ namespace DSProject
             panel += "5.Calculate Prescription (5)\n6.Create drug (6)\n";
             panel += "7.Create disease (7)\n8.Drug malfunction detection (8)\n";
             panel += "9.Disease malfunction detection (9)\n10.Delete drug (10)\n";
-            panel += "11.Delete disease (11)\n0.Exit\n";
+            panel += "11.Delete disease (11)\n0.Exit (0)\n";
             panel += "Enter the number : ";
 
             while (true)
             { 
                 Console.WriteLine(panel);
                 var input = Console.ReadLine();
+                if (DB == null && input != "1")
+                {
+                    Console.Clear();
+                    Logg.Error("There is no DB, You have to initialize the DB first. Choose first option.");
+                    Console.ReadKey();
+                    Console.Clear();
+                    continue;
+                }
 
                 if (input == "1")
                 {
                     Console.Clear();
 
-                    MyLogger logger = new MyLogger();
-                    Logg = logger;
                     InitDb();
                     Op = new MyOperator(DB, Logg);
                     InitConsole(DB, Op, Logg);
@@ -1297,7 +1339,7 @@ namespace DSProject
                 } else if(input == "5")
                 {
                     Console.Clear();
-                    Cons.CalcPrescription();
+                    Cons.CalcPrescriptionReplacement();
                     Console.ReadKey();
                     Console.Clear();
                 } else if (input == "6")
