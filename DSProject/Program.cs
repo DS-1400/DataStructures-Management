@@ -178,6 +178,8 @@ namespace DSProject
                 return;
             }
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             String input1 = drugName + " : " + drugPrice; // Input 1 Operator::CreateDrug()
             String input3 = drugName + ":"; // Input 3 Operator::CreateDrug()
             Thread th1 = new Thread(this.AddDrugHelper); // Produces input2 Operator::CreateDrug()
@@ -204,6 +206,8 @@ namespace DSProject
             this.Operator.CreateDrug(input1, this.input2, 
                 input3, this.input4);
 
+            watch.Stop();
+            this.Logger.Info("The time for adding a drug is " + watch.ElapsedMilliseconds);
             this.Logger.Message("Drug was created");
 
         }
@@ -752,7 +756,7 @@ namespace DSProject
             this.PersistDrugsEffects(this.DrugsEffectsPath);
         }
 
-        private void CreateDrugHelper(object input)
+        private void CreateDrugHelper(object input) // Handle the drug Effects
         {
             string drugsEffects = input as string;
             String[] dual = drugsEffects.Split(":");
@@ -773,7 +777,7 @@ namespace DSProject
                     if (this.DB.DrugsEffectsNames[i].Split(":")[0].Contains(kv.Key))
                     {
                         this.DB.DrugsEffectsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
-                        drugsEffectsDict.Remove(kv.Key);
+                        //drugsEffectsDict.Remove(kv.Key);
                         break;
                     }
                 }
@@ -782,7 +786,7 @@ namespace DSProject
             this.PersistDrugsEffects(this.DrugsEffectsPath);
         }
 
-        private void CreateDrugHelper2(object input)
+        private void CreateDrugHelper2(object input) // Handle the disease Drugs
         {
             string diseasesDrugs = input as string;
             String[] dual = diseasesDrugs.Split(":"); // dual[0] is the drug_name like drug_aa
@@ -1268,6 +1272,7 @@ namespace DSProject
         private static void InitDb()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            //watch.Start();
 
             if (Program.DB == null)
             {
@@ -1280,7 +1285,7 @@ namespace DSProject
 
         private static void Panel()
         { 
-            String panel = "1.Init DB (1)\n2.Find specific drug (2)\n";
+            String panel = "1.Init DB & Operator (1)\n2.Find specific drug (2)\n";
             panel += "3.Find specific disease (3)\n4.Apply inflation rate (4)\n";
             panel += "5.Calculate Prescription (5)\n6.Create drug (6)\n";
             panel += "7.Create disease (7)\n8.Drug malfunction detection (8)\n";
@@ -1295,7 +1300,7 @@ namespace DSProject
                 if (DB == null && input != "1")
                 {
                     Console.Clear();
-                    Logg.Error("There is no DB, You have to initialize the DB first. Choose first option.");
+                    Logg.Error("There is no DB, Operator & Console; You have to initialize them first. Choose first option.");
                     Console.ReadKey();
                     Console.Clear();
                     continue;
@@ -1339,7 +1344,7 @@ namespace DSProject
                 } else if(input == "5")
                 {
                     Console.Clear();
-                    Cons.CalcPrescriptionReplacement();
+                    Cons.CalcPrescriptionReplacement(); // we can change it with CalcPrescription
                     Console.ReadKey();
                     Console.Clear();
                 } else if (input == "6")
