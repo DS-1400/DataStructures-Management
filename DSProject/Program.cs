@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading;
 
@@ -178,8 +179,6 @@ namespace DSProject
                 return;
             }
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             String input1 = drugName + " : " + drugPrice; // Input 1 Operator::CreateDrug()
             String input3 = drugName + ":"; // Input 3 Operator::CreateDrug()
             Thread th1 = new Thread(this.AddDrugHelper); // Produces input2 Operator::CreateDrug()
@@ -206,8 +205,6 @@ namespace DSProject
             this.Operator.CreateDrug(input1, this.input2, 
                 input3, this.input4);
 
-            watch.Stop();
-            this.Logger.Info("The time for adding a drug is " + watch.ElapsedMilliseconds);
             this.Logger.Message("Drug was created");
 
         }
@@ -266,9 +263,8 @@ namespace DSProject
             for (int i = 0; i < idx.Length; i++)
             {
                 idx[i] = rand.Next(0, this.Db.DrugsNames.Count);
-                output += " (" + this.Db.DrugsNames[idx[i]] + "," + (rand.Next(0, 2) == 1 ? "+" : "-") + ") ;";
+                output += " (" + this.Db.DrugsNames[idx[i]].Split(":")[0].TrimEnd(this.Operator.TrimParams) + "," + (rand.Next(0, 2) == 1 ? "+" : "-") + ") ;";
             }
-            //
 
             bool outcome = 
                 this.Operator.CreateDisease(output.TrimEnd(this.Operator.TrimParams));
@@ -344,6 +340,11 @@ namespace DSProject
             var result = this.Operator.DiseaseMalfunction(diseaseName, drugs.Trim().Split(","));
             this.Logger.Message(result);
         }
+
+        public void PrintRecentLogs()
+        {
+            this.Logger.PrintRecentLogs();
+        }
     }
 
     class MyLogger: ILogger
@@ -387,6 +388,15 @@ namespace DSProject
             Console.WriteLine("INFO : " + message);
             Console.ResetColor();
             File.AppendAllText(this.LogPath, "INFO : " + message + "\n");
+        }
+
+        public void PrintRecentLogs()
+        {
+            var lines = File.ReadAllLines(this.LogPath);
+            foreach (var line in lines)
+            {
+                Console.WriteLine(line);
+            }
         }
     }
 
@@ -733,6 +743,7 @@ namespace DSProject
             string selfDrugEffects // must be in document format
             ) // Test is required
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
             if (this.DB.DrugsNames.Contains(drugName))
             {
@@ -754,6 +765,9 @@ namespace DSProject
 
             this.DB.DrugsEffectsNames.Add(selfDrugEffects);
             this.PersistDrugsEffects(this.DrugsEffectsPath);
+
+            watch.Stop();
+            this.Logger.Info("The time for adding a drug is " + watch.ElapsedMilliseconds);
         }
 
         private void CreateDrugHelper(object input) // Handle the drug Effects
@@ -935,7 +949,7 @@ namespace DSProject
                     {
                         if (!after[i].Contains(name_))
                         {
-                            tmp += after[i];
+                            tmp += after[i] + ";";
                         }
                     }
 
@@ -1291,13 +1305,14 @@ namespace DSProject
             panel += "7.Create disease (7)\n8.Drug malfunction detection (8)\n";
             panel += "9.Disease malfunction detection (9)\n10.Delete drug (10)\n";
             panel += "11.Delete disease (11)\n0.Exit (0)\n";
+            panel += "12.Print logs (12)\n";
             panel += "Enter the number : ";
 
             while (true)
             { 
                 Console.WriteLine(panel);
                 var input = Console.ReadLine();
-                if (DB == null && input != "1")
+                if (DB == null && input != "1" && input != "0")
                 {
                     Console.Clear();
                     Logg.Error("There is no DB, Operator & Console; You have to initialize them first. Choose first option.");
@@ -1382,6 +1397,12 @@ namespace DSProject
                 {
                     Console.Clear();
                     Cons.DeleteDisease();
+                    Console.ReadKey();
+                    Console.Clear();
+                } else if (input == "12")
+                {
+                    Console.Clear();
+                    Cons.PrintRecentLogs();
                     Console.ReadKey();
                     Console.Clear();
                 }
