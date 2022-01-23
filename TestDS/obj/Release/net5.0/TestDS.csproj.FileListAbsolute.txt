@@ -1,0 +1,16 @@
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\TestDS.exe
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\TestDS.deps.json
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\TestDS.runtimeconfig.json
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\TestDS.runtimeconfig.dev.json
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\TestDS.dll
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\ref\TestDS.dll
+D:\Alireza\RiderProjects\TestDSProject\TestDS\bin\Release\net5.0\TestDS.pdb
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.csproj.AssemblyReference.cache
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.GeneratedMSBuildEditorConfig.editorconfig
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.AssemblyInfoInputs.cache
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.AssemblyInfo.cs
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.csproj.CoreCompileInputs.cache
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.dll
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\ref\TestDS.dll
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.pdb
+D:\Alireza\RiderProjects\TestDSProject\TestDS\obj\Release\net5.0\TestDS.genruntimeconfig.cache

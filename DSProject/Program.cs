@@ -784,19 +784,40 @@ namespace DSProject
                 drugsEffectsDict.Add(tmp[0], tmp[1]);
             }
 
-            foreach (var kv in drugsEffectsDict)
+            while (drugsEffectsDict.Count > 0)
             {
-                for (int i = 0; i < this.DB.DrugsEffectsNames.Count; i++)
+                foreach (var kv in drugsEffectsDict)
                 {
-                    if (this.DB.DrugsEffectsNames[i].Split(":")[0].Contains(kv.Key))
+                    bool found = false;
+                    for (int i = 0; i < this.DB.DrugsEffectsNames.Count; i++)
                     {
-                        this.DB.DrugsEffectsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
-                        //drugsEffectsDict.Remove(kv.Key);
-                        break;
+                        if (this.DB.DrugsEffectsNames[i].Split(":")[0].Contains(kv.Key))
+                        {
+                            this.DB.DrugsEffectsNames[i] += " ; (" + dual[0] + "," + kv.Value + ")";
+                            drugsEffectsDict.Remove(kv.Key);
+                            found = true;
+                            break;
+                        }
                     }
+
+                    if (!found)
+                    {
+                        this.DB.DrugsEffectsNames.Add(kv.Key + " :" + " (" + dual[0] + "," + kv.Value + ")");
+                        drugsEffectsDict.Remove(kv.Key);
+                    }
+                    break;
                 }
             }
 
+            while (drugsEffectsDict.Count > 0)
+            {
+                foreach (var kv in drugsEffectsDict)
+                {
+                    
+                }
+            }
+
+            
             this.PersistDrugsEffects(this.DrugsEffectsPath);
         }
 
@@ -1419,8 +1440,8 @@ namespace DSProject
             MyLogger logger = new MyLogger();
             Logg = logger;
             // InitDb();
-            // Op = new MyOperator(DB, logger);
-            // InitConsole(DB, Op, logger);
+            // Op = new MyOperator(DB, Logg);
+            // InitConsole(DB, Op, Logg);
 
             // Initialization
 
@@ -1455,11 +1476,11 @@ namespace DSProject
 
             // op.CreateDisease("Dis_aaaaaaaaaa : (Drug_ddddddd,+) ; (Drug_eeeeeee,-) ; (Drug_dfwdfwdfw,+)"); // Test for creating disease
 
-            // op.CreateDrug( // Test for create drug
-            //     "Drug_aaaaaaaaaa : 9999",
-            //     "Drug_aaaaaaaaaa:Drug_ugqzkbyrrr,Eff_tvhidekyud;Drug_rxqdjdgkva,Eff_bsmcbsnxps",
-            //     "Drug_aaaaaaaaaa:Dis_qfwtffeczg,+;Dis_xikkgsfmlz,-",
-            //     "Drug_aaaaaaaaaa : (Drug_ugqzkbyryr,Eff_kbbhexfirm) ; (Drug_qlihgxyjok,Eff_fsmsfgmihc)");
+            // Op.CreateDrug( // Test for create drug
+            //     "Drug_zzzzzzzzzz : 7676",
+            //     "Drug_zzzzzzzzzz:Drug_igqkzmfllx,Eff_tvhidekyud;Drug_pxouyeenru,Eff_bsmcbsnxps;Drug_eeeeeeeeee,Eff_xyhezrxkml",
+            //     "Drug_zzzzzzzzzz:Dis_rpqivyelnn,+;Dis_gmtkgthudh,-",
+            //     "Drug_zzzzzzzzzz : (Drug_ugqzkbyryr,Eff_kbbhexfirm) ; (Drug_qlihgxyjok,Eff_fsmsfgmihc)");
 
 
             // op.ApplyInflationRate(2);

@@ -13,4 +13,3 @@ D:\Alireza\RiderProjects\TestDSProject\TestDS2\obj\Debug\net5.0\TestDS2.dll
 D:\Alireza\RiderProjects\TestDSProject\TestDS2\obj\Debug\net5.0\ref\TestDS2.dll
 D:\Alireza\RiderProjects\TestDSProject\TestDS2\obj\Debug\net5.0\TestDS2.pdb
 D:\Alireza\RiderProjects\TestDSProject\TestDS2\obj\Debug\net5.0\TestDS2.genruntimeconfig.cache
-D:\Alireza\RiderProjects\TestDSProject\TestDS2\obj\Debug\net5.0\TestDS2.csproj.AssemblyReference.cache
